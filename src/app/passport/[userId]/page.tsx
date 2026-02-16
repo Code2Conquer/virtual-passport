@@ -4,6 +4,7 @@ import { getUserById, getAllUserIds } from "@/data/data-service";
 import PassportBook from "@/components/passport/PassportBook";
 import ShareButton from "@/components/shared/ShareButton";
 import Footer from "@/components/shared/Footer";
+import ViewTracker from "@/components/shared/ViewTracker";
 import Link from "next/link";
 
 interface Props {
@@ -47,6 +48,9 @@ export default async function PassportPage({ params }: Props) {
 
   return (
     <main className="min-h-screen bg-passport-bg flex flex-col items-center justify-center px-4 py-8">
+      {/* Analytics: logs a view every time someone opens this page */}
+      <ViewTracker passportSlug={user.id} />
+
       {/* Header */}
       <div className="text-center mb-6">
         <Link
@@ -70,6 +74,7 @@ export default async function PassportPage({ params }: Props) {
       <ShareButton
         url={passportUrl}
         title={`${user.name}'s Virtual Passport`}
+        passportSlug={user.id}
       />
 
       {/* Footer */}

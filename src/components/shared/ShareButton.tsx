@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { logPassportShare } from "@/data/data-service";
 
 interface ShareButtonProps {
   url: string;
   title: string;
+  passportSlug: string; // needed to log which passport was shared
 }
 
-export default function ShareButton({ url, title }: ShareButtonProps) {
+export default function ShareButton({ url, title, passportSlug }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
 
@@ -16,6 +18,7 @@ export default function ShareButton({ url, title }: ShareButtonProps) {
   }, []);
 
   const handleCopy = async () => {
+    logPassportShare(passportSlug, "clipboard");
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -34,6 +37,7 @@ export default function ShareButton({ url, title }: ShareButtonProps) {
   };
 
   const handleNativeShare = async () => {
+    logPassportShare(passportSlug, "native");
     if (navigator.share) {
       await navigator.share({ title, url });
     }
@@ -85,6 +89,7 @@ export default function ShareButton({ url, title }: ShareButtonProps) {
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => logPassportShare(passportSlug, "whatsapp")}
         className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-passport-gold/10 border border-passport-gold/20 text-passport-gold text-xs font-sans hover:bg-passport-gold/20 transition-colors"
       >
         WhatsApp
@@ -95,6 +100,7 @@ export default function ShareButton({ url, title }: ShareButtonProps) {
         href={twitterUrl}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => logPassportShare(passportSlug, "twitter")}
         className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-passport-gold/10 border border-passport-gold/20 text-passport-gold text-xs font-sans hover:bg-passport-gold/20 transition-colors"
       >
         X / Twitter
