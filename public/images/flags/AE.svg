@@ -1,0 +1,10 @@
+<svg viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg">
+  <!-- Red vertical stripe on left -->
+  <rect width="8" height="30" fill="#CE1126"/>
+  <!-- Green horizontal stripe -->
+  <rect x="8" width="32" height="10" fill="#007A5E"/>
+  <!-- White horizontal stripe -->
+  <rect x="8" y="10" width="32" height="10" fill="#FFFFFF"/>
+  <!-- Black horizontal stripe -->
+  <rect x="8" y="20" width="32" height="10" fill="#000000"/>
+</svg>

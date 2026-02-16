@@ -1,0 +1,20 @@
+<svg viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg">
+  <!-- Blue canton -->
+  <rect width="15" height="15" fill="#002868"/>
+  <!-- Red stripes -->
+  <rect y="0" width="40" height="2.14" fill="#BF0A30"/>
+  <rect y="4.29" width="40" height="2.14" fill="#BF0A30"/>
+  <rect y="8.57" width="40" height="2.14" fill="#BF0A30"/>
+  <rect y="12.86" width="40" height="2.14" fill="#BF0A30"/>
+  <rect y="17.14" width="40" height="2.14" fill="#BF0A30"/>
+  <!-- White stripes -->
+  <rect y="2.14" width="40" height="2.15" fill="#FFFFFF"/>
+  <rect y="6.43" width="40" height="2.14" fill="#FFFFFF"/>
+  <rect y="10.71" width="40" height="2.15" fill="#FFFFFF"/>
+  <rect y="15" width="40" height="2.14" fill="#FFFFFF"/>
+  <rect y="19.29" width="40" height="2.14" fill="#FFFFFF"/>
+  <!-- Additional bottom red stripe -->
+  <rect y="21.43" width="40" height="2.14" fill="#BF0A30"/>
+  <rect y="23.57" width="40" height="2.14" fill="#FFFFFF"/>
+  <rect y="25.71" width="40" height="4.29" fill="#BF0A30"/>
+</svg>

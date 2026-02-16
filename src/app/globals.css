@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-passport-navy: #0A1F44;
+  --color-passport-navy-light: #162D5A;
+  --color-passport-gold: #C4A35A;
+  --color-passport-gold-light: #D4B96E;
+  --color-passport-cream: #F5F0E1;
+  --color-passport-cream-dark: #E8DFC8;
+  --color-passport-paper: #FAF7F0;
+  --color-passport-bg: #1A1A2E;
+  --color-passport-ink-red: #C41E3A;
+  --color-passport-ink-blue: #1A4B8C;
+  --color-passport-ink-green: #2D6A4F;
+  --color-passport-ink-black: #2C2C2C;
+  --color-passport-ink-purple: #6B2D8B;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-stamp: var(--font-stamp), "Courier New", monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-passport-bg);
+  color: #ededed;
+}
+
+/* Stamp visual effects */
+.stamp {
+  position: relative;
+  overflow: hidden;
+}
+
+.stamp::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("/images/grunge-texture.svg");
+  background-size: cover;
+  mix-blend-mode: multiply;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.stamp-border-circle {
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  filter: url(#rough-edge);
+}
+
+.stamp-border-rect {
+  border: 3px solid currentColor;
+  border-radius: 4px;
+  filter: url(#rough-edge);
+}
+
+.stamp--red { color: #C41E3A; }
+.stamp--blue { color: #1A4B8C; }
+.stamp--green { color: #2D6A4F; }
+.stamp--black { color: #2C2C2C; }
+.stamp--purple { color: #6B2D8B; }
+
+.passport-page-watermark {
+  background-image: url("/images/passport-watermark.svg");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  opacity: 0.05;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }

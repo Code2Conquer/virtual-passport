@@ -1,0 +1,9 @@
+<svg viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg">
+  <!-- Red border -->
+  <rect width="40" height="30" fill="#CE1126"/>
+  <!-- Green center -->
+  <rect x="3" y="3" width="34" height="24" fill="#00843D"/>
+  <!-- White crescent -->
+  <circle cx="20" cy="15" r="5" fill="#FFFFFF"/>
+  <circle cx="22" cy="15" r="4.8" fill="#00843D"/>
+</svg>
