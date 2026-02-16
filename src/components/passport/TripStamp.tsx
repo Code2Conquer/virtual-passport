@@ -23,12 +23,22 @@ export default function TripStamp({
 
   const borderClass =
     trip.stampVariant === "circle"
-      ? "rounded-full aspect-square"
+      ? "rounded-full"
       : trip.stampVariant === "oval"
-        ? "rounded-[50%] aspect-[4/5]"
+        ? "rounded-[50%]"
         : trip.stampVariant === "diamond"
-          ? "rotate-0"
+          ? "rotate-45"
           : "rounded-md";
+
+  // Compact sizing per variant — prevents stamps from being oversized
+  const sizeClass =
+    trip.stampVariant === "circle"
+      ? "w-32 h-32 md:w-36 md:h-36"
+      : trip.stampVariant === "oval"
+        ? "w-28 h-36 md:w-32 md:h-40"
+        : trip.stampVariant === "diamond"
+          ? "w-28 h-28 md:w-32 md:h-32"
+          : "w-36 h-28 md:w-40 md:h-32"; // rectangle — wider than tall
 
   const colorClass = `stamp--${color}`;
 
@@ -51,21 +61,20 @@ export default function TripStamp({
         left: `${position.x}%`,
         top: `${position.y}%`,
         transform: `rotate(${position.rotation}deg) scale(${position.scale})`,
-        width: "75%",
       }}
     >
       <div className={`stamp ${colorClass}`}>
         <div
-          className={`border-[3px] border-current p-3 md:p-4 ${borderClass} ${
-            trip.stampVariant === "diamond" ? "" : ""
-          }`}
+          className={`border-[3px] border-current ${sizeClass} ${borderClass} flex items-center justify-center`}
           style={{
             filter:
               "url(#rough-edge) drop-shadow(0 1px 2px rgba(0,0,0,0.05))",
           }}
         >
-          {/* Stamp content */}
-          <div className="flex flex-col items-center text-center gap-0.5">
+          {/* Stamp content — counter-rotate for diamond so text is readable */}
+          <div className={`flex flex-col items-center text-center gap-0.5 p-1.5 ${
+            trip.stampVariant === "diamond" ? "-rotate-45" : ""
+          }`}>
             {/* Country flag */}
             <CountryFlag countryCode={trip.destination.countryCode} size={18} />
 
