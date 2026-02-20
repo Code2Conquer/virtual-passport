@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ixigo Flights — Post-Payment Booking Flow Mind Map</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 28px; color: #fff; margin-bottom: 8px; }
+  .subtitle { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 40px; }
+
+  /* State Machine Flow */
+  .flow-section { max-width: 1200px; margin: 0 auto 60px; }
+  .flow-section h2 { font-size: 20px; color: #38bdf8; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #1e293b; }
+
+  .state-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  .state-node {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px 24px;
+    border-left: 4px solid #475569;
+    margin-left: 40px;
+    position: relative;
+  }
+  .state-node::before {
+    content: '';
+    position: absolute;
+    left: -42px;
+    top: 0;
+    bottom: -1px;
+    width: 2px;
+    background: #334155;
+  }
+  .state-node::after {
+    content: '';
+    position: absolute;
+    left: -42px;
+    top: 28px;
+    width: 20px;
+    height: 2px;
+    background: #334155;
+  }
+  .state-node:last-child::before { bottom: 50%; }
+
+  .state-node.happy { border-left-color: #22c55e; }
+  .state-node.pending { border-left-color: #eab308; }
+  .state-node.retry { border-left-color: #f97316; }
+  .state-node.fail { border-left-color: #ef4444; }
+  .state-node.terminal-good { border-left-color: #22c55e; }
+  .state-node.terminal-bad { border-left-color: #8b5cf6; }
+
+  .state-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .happy .state-label { color: #22c55e; }
+  .pending .state-label { color: #eab308; }
+  .retry .state-label { color: #f97316; }
+  .fail .state-label { color: #ef4444; }
+  .terminal-good .state-label { color: #22c55e; }
+  .terminal-bad .state-label { color: #8b5cf6; }
+
+  .state-title { font-size: 16px; font-weight: 600; color: #f1f5f9; margin-bottom: 12px; }
+  .state-arrow { text-align: center; color: #475569; font-size: 20px; padding: 4px 0; margin-left: 40px; }
+
+  /* 4-column grid for each state */
+  .handling-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .handling-card {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 12px;
+    border: 1px solid #1e293b;
+  }
+  .handling-card h4 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .handling-card.user h4 { color: #38bdf8; }
+  .handling-card.cx h4 { color: #a78bfa; }
+  .handling-card.supplier h4 { color: #fb923c; }
+  .handling-card.finance h4 { color: #4ade80; }
+  .handling-card ul { list-style: none; padding: 0; }
+  .handling-card li { font-size: 12px; color: #94a3b8; line-height: 1.5; padding: 2px 0; padding-left: 14px; position: relative; }
+  .handling-card li::before { content: '•'; position: absolute; left: 0; color: #475569; }
+
+  /* Roadmap items */
+  .roadmap-tag {
+    display: inline-block;
+    font-size: 10px;
+    background: #1e1b4b;
+    color: #818cf8;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px;
+  }
+
+  /* Mind Map Section */
+  .mindmap { max-width: 1200px; margin: 0 auto 60px; }
+  .mindmap h2 { font-size: 20px; color: #38bdf8; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #1e293b; }
+
+  .mm-center {
+    text-align: center;
+    background: linear-gradient(135deg, #1e40af, #7c3aed);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 16px 32px;
+    border-radius: 12px;
+    display: inline-block;
+    margin: 0 auto 30px;
+    width: 100%;
+  }
+
+  .mm-branches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .mm-branch {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border-top: 3px solid #475569;
+  }
+  .mm-branch.b1 { border-top-color: #22c55e; }
+  .mm-branch.b2 { border-top-color: #eab308; }
+  .mm-branch.b3 { border-top-color: #ef4444; }
+  .mm-branch.b4 { border-top-color: #38bdf8; }
+  .mm-branch.b5 { border-top-color: #a78bfa; }
+  .mm-branch.b6 { border-top-color: #fb923c; }
+
+  .mm-branch h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .mm-branch.b1 h3 { color: #22c55e; }
+  .mm-branch.b2 h3 { color: #eab308; }
+  .mm-branch.b3 h3 { color: #ef4444; }
+  .mm-branch.b4 h3 { color: #38bdf8; }
+  .mm-branch.b5 h3 { color: #a78bfa; }
+  .mm-branch.b6 h3 { color: #fb923c; }
+
+  .mm-branch ul { list-style: none; }
+  .mm-branch li { font-size: 12px; color: #94a3b8; padding: 4px 0 4px 16px; position: relative; line-height: 1.5; }
+  .mm-branch li::before { content: '→'; position: absolute; left: 0; color: #475569; }
+  .mm-branch li strong { color: #cbd5e1; }
+
+  /* SLA Section */
+  .sla-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto 60px;
+  }
+  .sla-card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+  }
+  .sla-card h3 { font-size: 14px; color: #f97316; margin-bottom: 12px; }
+  .sla-card li { font-size: 12px; color: #94a3b8; line-height: 1.8; padding-left: 14px; position: relative; }
+  .sla-card li::before { content: '⚡'; position: absolute; left: 0; font-size: 10px; }
+
+  /* ASCII flow */
+  .ascii-flow {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #94a3b8;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .ascii-flow .green { color: #22c55e; }
+  .ascii-flow .yellow { color: #eab308; }
+  .ascii-flow .orange { color: #f97316; }
+  .ascii-flow .red { color: #ef4444; }
+  .ascii-flow .purple { color: #a78bfa; }
+  .ascii-flow .blue { color: #38bdf8; }
+  .ascii-flow .dim { color: #475569; }
+
+  @media (max-width: 768px) {
+    .handling-grid { grid-template-columns: 1fr; }
+    .mm-branches { grid-template-columns: 1fr; }
+    .sla-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>ixigo Flights — Post-Payment Booking Flow</h1>
+<p class="subtitle">Covers all states from Payment Success to final resolution</p>
+
+<!-- ===================== STATE MACHINE FLOW ===================== -->
+<div class="flow-section">
+<h2>1. State Machine — The Complete Flow</h2>
+
+<div class="ascii-flow"><span class="blue">PAYMENT SUCCESSFUL</span>
+<span class="dim">        │</span>
+<span class="dim">        ├──────────────────────────────────────────────────────────</span><span class="green">► BOOKING COMPLETE ✓</span>
+<span class="dim">        │                                                          (Happy path — PNR confirmed)</span>
+<span class="dim">        │</span>
+<span class="dim">        ├──────────────────────────────────────────────────────────</span><span class="yellow">► BOOKING PENDING ⏳</span>
+<span class="dim">        │                                                          (Waiting for airline — timer running)</span>
+<span class="dim">        │                                                                │</span>
+<span class="dim">        │                                                     resolves ──┤── times out</span>
+<span class="dim">        │                                                        │       │</span>
+<span class="dim">        │                                                </span><span class="green">COMPLETE ✓   </span><span class="red">FAILED ✗</span>
+<span class="dim">        │</span>
+<span class="dim">        └──────────────────────────────────────────────────────────</span><span class="red">► BOOKING FAILED ✗</span>
+<span class="dim">                                                                       │</span>
+<span class="dim">                                                    ┌──────────────────┘</span>
+<span class="dim">                                                    │</span>
+<span class="dim">                                           </span><span class="orange">ONLINE REBOOK</span><span class="dim"> (auto-retry, same/diff provider)</span>
+<span class="dim">                                                    │</span>
+<span class="dim">                                         ┌──────────┼──────────┐</span>
+<span class="dim">                                         │          │          │</span>
+<span class="dim">                                  </span><span class="green">REBOOK OK ✓  </span><span class="yellow">PENDING ⏳  </span><span class="red">REBOOK FAIL ✗</span>
+<span class="dim">                                                                │</span>
+<span class="dim">                                                     ┌──────────┘</span>
+<span class="dim">                                                     │</span>
+<span class="dim">                                            </span><span class="orange">OFFLINE REBOOK</span><span class="dim"> (agent queue)</span>
+<span class="dim">                                                     │</span>
+<span class="dim">                                          ┌──────────┼──────────┐</span>
+<span class="dim">                                          │          │          │</span>
+<span class="dim">                                   </span><span class="green">REBOOK OK ✓  </span><span class="yellow">PENDING ⏳  </span><span class="red">REBOOK FAIL ✗</span>
+<span class="dim">                                                                 │</span>
+<span class="dim">                                                      ┌──────────┘</span>
+<span class="dim">                                                      │</span>
+<span class="dim">                                             </span><span class="purple">REFUND TRIGGERED 💰</span>
+<span class="dim">                                             (terminal — all retries exhausted)</span></div>
+</div>
+
+<!-- ===================== DETAILED STATE CARDS ===================== -->
+<div class="flow-section">
+<h2>2. Each State — What Every Team Handles</h2>
+
+<!-- State 1: Booking Complete -->
+<div class="state-node happy">
+  <div class="state-label">Happy Path</div>
+  <div class="state-title">① Payment Successful → Booking Complete</div>
+  <div class="handling-grid">
+    <div class="handling-card user">
+      <h4>👤 User Sees</h4>
+      <ul>
+        <li>Booking confirmation page</li>
+        <li>Options: SHARE or VIEW DETAILS</li>
+        <li>E-ticket + invoice via email/WhatsApp</li>
+      </ul>
+    </div>
+    <div class="handling-card cx">
+      <h4>🎧 CX / OneView</h4>
+      <ul>
+        <li>Trip created with all details</li>
+        <li>User + supply side details visible (provider, identifier, etc.)</li>
+      </ul>
+    </div>
+    <div class="handling-card supplier">
+      <h4>✈️ Supplier</h4>
+      <ul>
+        <li>Recon with booking provider</li>
+        <li>Verify: offered fare, seat details, meal, billing/GSTIN</li>
+      </ul>
+    </div>
+    <div class="handling-card finance">
+      <h4>💰 Finance</h4>
+      <ul>
+        <li>Ensure correct published fare</li>
+        <li>Verify markup, margin</li>
+        <li>Verify taxes on invoice</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 12px;">
+    <span class="roadmap-tag">Shareable booked trips</span>
+    <span class="roadmap-tag">Invoice/e-ticket updates for defects</span>
+    <span class="roadmap-tag">Promo code/deal fare validation</span>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 2: Booking Pending -->
+<div class="state-node pending">
+  <div class="state-label">Waiting</div>
+  <div class="state-title">② Payment Successful → Booking Pending</div>
+  <div class="handling-grid">
+    <div class="handling-card user">
+      <h4>👤 User Sees</h4>
+      <ul>
+        <li>Booking Pending screen → redirected to Trip Details</li>
+        <li>Timer + proper messaging</li>
+        <li>Called to convey booking is pending on airline</li>
+      </ul>
+    </div>
+    <div class="handling-card cx">
+      <h4>🎧 CX / OneView</h4>
+      <ul>
+        <li>Visibility of what user is seeing (timer etc.)</li>
+        <li>Last retrieve response from provider</li>
+        <li>Rebooking attempts + states</li>
+        <li>Next steps: abort or alternate booking</li>
+      </ul>
+    </div>
+    <div class="handling-card supplier">
+      <h4>✈️ Supplier</h4>
+      <ul>
+        <li>Monitor SLAs: PSBP%, PSBP time</li>
+        <li>Analyze PSBP reasons with partners</li>
+        <li>Check API timeouts immediately</li>
+        <li>Verify PNR actually created at airline</li>
+        <li>100% surety on end state before refund/confirmation</li>
+      </ul>
+    </div>
+    <div class="handling-card finance">
+      <h4>💰 Finance</h4>
+      <ul>
+        <li>(Handled after resolution)</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 12px;">
+    <span class="roadmap-tag">PSBP death via rebooking</span>
+    <span class="roadmap-tag">Offline PNR retrieval & mapping</span>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 3: Online Rebook Triggered -->
+<div class="state-node retry">
+  <div class="state-label">Auto-Retry</div>
+  <div class="state-title">③ Booking Failed → Online Rebook Triggered</div>
+  <div class="handling-grid">
+    <div class="handling-card user">
+      <h4>👤 User Sees</h4>
+      <ul>
+        <li>Booking Pending state on Trip Details</li>
+        <li>Retry happening on same/different provider</li>
+        <li>With or without ancillary</li>
+      </ul>
+    </div>
+    <div class="handling-card cx">
+      <h4>🎧 CX / OneView</h4>
+      <ul>
+        <li>Visibility of timer, user's current view</li>
+        <li>Last retrieve response from provider</li>
+        <li>Rebooking attempts + their states</li>
+        <li>Next steps: abort or alternate</li>
+      </ul>
+    </div>
+    <div class="handling-card supplier">
+      <h4>✈️ Supplier</h4>
+      <ul>
+        <li>Same SLA monitoring as pending</li>
+        <li>Verify no PNR was actually created before rebook</li>
+        <li>100% surety on end state</li>
+      </ul>
+    </div>
+    <div class="handling-card finance">
+      <h4>💰 Finance</h4>
+      <ul>
+        <li>Failed booking recon: verify no PNR created on provider/airline</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin-top: 12px;">
+    <span class="roadmap-tag">100% online rebook coverage</span>
+    <span class="roadmap-tag">All booking types eligible</span>
+    <span class="roadmap-tag">100% providers eligible</span>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 4: Online Rebook Pending -->
+<div class="state-node pending">
+  <div class="state-label">Waiting</div>
+  <div class="state-title">④ Online Rebook Pending</div>
+  <div class="handling-grid">
+    <div class="handling-card user"><h4>👤 User Sees</h4><ul><li>Booking pending state on Trip Details</li></ul></div>
+    <div class="handling-card cx"><h4>🎧 CX / OneView</h4><ul><li>Same as above — full visibility of rebook attempts</li></ul></div>
+    <div class="handling-card supplier"><h4>✈️ Supplier</h4><ul><li>Same SLA monitoring</li><li>Verify PNR status at airline end</li></ul></div>
+    <div class="handling-card finance"><h4>💰 Finance</h4><ul><li>(Pending resolution)</li></ul></div>
+  </div>
+  <div style="margin-top: 12px;">
+    <span class="roadmap-tag">Timer-based booking termination</span>
+    <span class="roadmap-tag">Check if user wants to wait more</span>
+    <span class="roadmap-tag">Rule engine for PSBP death</span>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 5: Offline Rebook Triggered -->
+<div class="state-node fail">
+  <div class="state-label">Escalation</div>
+  <div class="state-title">⑤ Online Rebook Failed → Offline Rebook Triggered</div>
+  <div class="handling-grid">
+    <div class="handling-card user"><h4>👤 User Sees</h4><ul><li>Booking pending state on Trip Details</li></ul></div>
+    <div class="handling-card cx"><h4>🎧 CX / OneView</h4><ul>
+      <li>Queue of all offline rebook requests</li>
+      <li>List of eligible bookable providers</li>
+      <li>Previous failure reasons</li>
+      <li>Timer left</li>
+    </ul></div>
+    <div class="handling-card supplier"><h4>✈️ Supplier</h4><ul>
+      <li>Need IDs/sub-IDs for airline portals</li>
+      <li>PNR reports/dashboards access</li>
+      <li>Agents can check state of previous attempts</li>
+    </ul></div>
+    <div class="handling-card finance"><h4>💰 Finance</h4><ul><li>(Pending resolution)</li></ul></div>
+  </div>
+  <div style="margin-top: 12px;">
+    <span class="roadmap-tag">Offline queue revamp</span>
+    <span class="roadmap-tag">Make it agentic (AI-powered)</span>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 6: Offline Rebook Pending -->
+<div class="state-node pending">
+  <div class="state-label">Agent Working</div>
+  <div class="state-title">⑥ Offline Rebook Pending</div>
+  <div class="handling-grid">
+    <div class="handling-card user"><h4>👤 User Sees</h4><ul><li>Booking pending state on Trip Details</li></ul></div>
+    <div class="handling-card cx"><h4>🎧 CX / OneView</h4><ul><li>Full visibility of what user sees</li><li>Last retrieve response</li><li>Rebook attempts + states</li></ul></div>
+    <div class="handling-card supplier"><h4>✈️ Supplier</h4><ul><li>Same SLA monitoring</li><li>Verify PNR creation at airline end</li></ul></div>
+    <div class="handling-card finance"><h4>💰 Finance</h4><ul><li>(Pending resolution)</li></ul></div>
+  </div>
+  <div style="margin-top: 12px;">
+    <span class="roadmap-tag">Timer-based termination</span>
+    <span class="roadmap-tag">Rule engine for PSBP death</span>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 7: Refund Triggered -->
+<div class="state-node terminal-bad">
+  <div class="state-label">Terminal — Refund</div>
+  <div class="state-title">⑦ All Rebooks Failed → Refund Triggered</div>
+  <div class="handling-grid">
+    <div class="handling-card user"><h4>👤 User Sees</h4><ul>
+      <li>Failure state with refund details/timeline</li>
+      <li>Alternate bookable flights shown</li>
+    </ul></div>
+    <div class="handling-card cx"><h4>🎧 CX / OneView</h4><ul><li>(Refund workflow initiated)</li></ul></div>
+    <div class="handling-card supplier"><h4>✈️ Supplier</h4><ul><li>(No further action)</li></ul></div>
+    <div class="handling-card finance"><h4>💰 Finance</h4><ul>
+      <li>Failed booking recon</li>
+      <li>Verify no PNR created on provider/airline</li>
+    </ul></div>
+  </div>
+</div>
+<div class="state-arrow">▼</div>
+
+<!-- State 8: Offline Rebook Booking Complete -->
+<div class="state-node terminal-good">
+  <div class="state-label">Recovered ✓</div>
+  <div class="state-title">⑧ Offline Rebook → Booking Complete</div>
+  <div class="handling-grid">
+    <div class="handling-card user"><h4>👤 User Sees</h4><ul>
+      <li>Booking confirmation message</li>
+      <li>Updated e-ticket + invoice via email/WhatsApp</li>
+      <li>Details of components not booked</li>
+      <li>Charged vs refunded amounts</li>
+    </ul></div>
+    <div class="handling-card cx"><h4>🎧 CX / OneView</h4><ul>
+      <li>Trip with all details as shown to user</li>
+      <li>Supply side details (provider, identifier)</li>
+    </ul></div>
+    <div class="handling-card supplier"><h4>✈️ Supplier</h4><ul>
+      <li>Recon with booking provider</li>
+      <li>Verify fare, seat, meal, billing/GSTIN</li>
+    </ul></div>
+    <div class="handling-card finance"><h4>💰 Finance</h4><ul>
+      <li>Verify correct published fare</li>
+      <li>Verify markup, margin, taxes on invoice</li>
+    </ul></div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===================== MIND MAP VIEW ===================== -->
+<div class="mindmap">
+<h2>3. Mind Map — Cross-Cutting Concerns</h2>
+<div class="mm-center">POST-PAYMENT BOOKING FLOW — 6 PILLARS</div>
+<div class="mm-branches">
+
+<div class="mm-branch b1">
+  <h3>🟢 Happy Path Integrity</h3>
+  <ul>
+    <li><strong>PNR confirmation</strong> from airline in real-time</li>
+    <li><strong>E-ticket + invoice</strong> delivery (email + WhatsApp)</li>
+    <li><strong>Fare recon</strong> — published fare vs charged vs markup</li>
+    <li><strong>GSTIN/billing</strong> details verified on invoice</li>
+    <li><strong>Shareable trip</strong> page for users</li>
+  </ul>
+</div>
+
+<div class="mm-branch b2">
+  <h3>🟡 PSBP Management</h3>
+  <ul>
+    <li><strong>PSBP% monitoring</strong> — track per provider, per airline</li>
+    <li><strong>PSBP time</strong> — how long bookings stay pending</li>
+    <li><strong>Root cause analysis</strong> — API timeouts, partner issues</li>
+    <li><strong>PNR ghost check</strong> — was PNR created at airline but not returned?</li>
+    <li><strong>Timer management</strong> — when to kill pending booking</li>
+    <li><strong>Rule engine</strong> for PSBP death decisions (future)</li>
+  </ul>
+</div>
+
+<div class="mm-branch b3">
+  <h3>🔴 Rebook Engine</h3>
+  <ul>
+    <li><strong>Online rebook</strong> — auto-retry same/different provider</li>
+    <li><strong>With/without ancillary</strong> — series of retry strategies</li>
+    <li><strong>Offline rebook</strong> — agent queue with portal access</li>
+    <li><strong>100% provider coverage</strong> for online rebook (target)</li>
+    <li><strong>100% booking type coverage</strong> (target)</li>
+    <li><strong>Agentic offline queue</strong> — AI-powered agent (future)</li>
+  </ul>
+</div>
+
+<div class="mm-branch b4">
+  <h3>🔵 User Experience</h3>
+  <ul>
+    <li><strong>Pending screen</strong> — timer + messaging on Trip Details</li>
+    <li><strong>Proactive calls</strong> to user when booking is pending</li>
+    <li><strong>Failure state</strong> — refund details + timeline + alternate flights</li>
+    <li><strong>Recovered booking</strong> — updated e-ticket + delta details</li>
+    <li><strong>Abort option</strong> — user can choose to cancel vs wait</li>
+  </ul>
+</div>
+
+<div class="mm-branch b5">
+  <h3>🟣 CX / OneView Tooling</h3>
+  <ul>
+    <li><strong>Real-time sync</strong> — what user sees = what agent sees</li>
+    <li><strong>Provider responses</strong> — last retrieve response visible</li>
+    <li><strong>Rebook history</strong> — all attempts + states + failure reasons</li>
+    <li><strong>Offline queue dashboard</strong> — eligible providers, timer, history</li>
+    <li><strong>Airline portal access</strong> — IDs, sub-IDs, PNR reports</li>
+  </ul>
+</div>
+
+<div class="mm-branch b6">
+  <h3>🟠 Finance & Recon</h3>
+  <ul>
+    <li><strong>Booking recon</strong> — offered fare vs actual vs invoice</li>
+    <li><strong>Failed booking recon</strong> — verify no ghost PNR exists</li>
+    <li><strong>Markup/margin verification</strong> on every completed booking</li>
+    <li><strong>Refund accuracy</strong> — charged vs absorbed vs refunded</li>
+    <li><strong>Promo code audit</strong> — incorrect offered fare detection (future)</li>
+  </ul>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== KEY METRICS ===================== -->
+<div class="flow-section">
+<h2>4. Key Metrics to Monitor</h2>
+<div class="sla-grid">
+  <div class="sla-card">
+    <h3>Booking Success</h3>
+    <ul style="list-style:none;">
+      <li><strong>PSBP%</strong> — Payment Successful Booking Pending rate (lower = better)</li>
+      <li><strong>PSBP Time</strong> — Avg time a booking stays pending</li>
+      <li><strong>Online Rebook Success%</strong> — % of failed bookings recovered by auto-retry</li>
+      <li><strong>Offline Rebook Success%</strong> — % recovered by agents</li>
+      <li><strong>Terminal Failure%</strong> — % that end in refund (lowest = best)</li>
+    </ul>
+  </div>
+  <div class="sla-card">
+    <h3>Provider SLAs</h3>
+    <ul style="list-style:none;">
+      <li><strong>API Timeout Rate</strong> — per provider, per airline</li>
+      <li><strong>Ghost PNR Rate</strong> — PNR created but not returned</li>
+      <li><strong>Recon Match%</strong> — fare offered vs fare booked</li>
+      <li><strong>Rebook Eligibility%</strong> — providers supporting online rebook</li>
+      <li><strong>Avg Resolution Time</strong> — pending → final state</li>
+    </ul>
+  </div>
+  <div class="sla-card">
+    <h3>User Impact</h3>
+    <ul style="list-style:none;">
+      <li><strong>User Wait Time</strong> — from payment to confirmation/failure</li>
+      <li><strong>Proactive Call Rate</strong> — % of pending bookings where user is called</li>
+      <li><strong>Alternate Booking%</strong> — % of failed users who rebook</li>
+      <li><strong>Refund TAT</strong> — time from failure to refund credit</li>
+    </ul>
+  </div>
+  <div class="sla-card">
+    <h3>Finance Health</h3>
+    <ul style="list-style:none;">
+      <li><strong>Recon Mismatch Rate</strong> — fare discrepancies per provider</li>
+      <li><strong>Ghost PNR Liability</strong> — ₹ value of PNRs created but untracked</li>
+      <li><strong>Absorbed Cost</strong> — ₹ lost due to rebook at higher fare</li>
+      <li><strong>Margin Leakage</strong> — incorrect markup/promo application</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ===================== FUTURE ROADMAP ===================== -->
+<div class="flow-section">
+<h2>5. Future Roadmap</h2>
+<div style="background:#1e293b; border-radius:12px; padding:24px;">
+  <ul style="list-style:none; columns: 2; column-gap: 40px;">
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ 100% online rebook coverage across all booking types</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ 100% provider eligibility for online rebook</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Rule engine for PSBP death (when to terminate pending booking)</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Failed booking recon — no ghost PNRs</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ PSBP death via rebooking + offline PNR retrieval & mapping</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Offline queue revamp + agentic AI automation</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Timer-based booking termination with user preference check</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Shareable booked trips</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Invoice/e-ticket updates for defects (seat not booked, price changed)</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Promo code/deal fare validation at booking time</li>
+    <li style="font-size:13px; color:#94a3b8; padding:6px 0; break-inside:avoid;">→ Incorrect offered fare detection & correction</li>
+  </ul>
+</div>
+</div>
+
+<footer style="text-align:center; padding:40px 0; color:#334155; font-size:12px;">
+  Source: Post-Payment Booking Flow States
+</footer>
+
+</body>
+</html>
