@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRD — Provider Reconciliation System | ixigo Flights</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 40px 20px; line-height: 1.7; }
+
+  /* Header */
+  .doc-header {
+    max-width: 1000px;
+    margin: 0 auto 40px;
+    text-align: center;
+    border-bottom: 2px solid #1e293b;
+    padding-bottom: 30px;
+  }
+  .doc-header h1 { font-size: 28px; color: #fff; margin-bottom: 8px; }
+  .doc-header .subtitle { font-size: 14px; color: #64748b; margin-bottom: 16px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 700px;
+    margin: 16px auto 0;
+  }
+  .meta-item {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+  }
+  .meta-item .label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; }
+  .meta-item .value { font-size: 13px; color: #38bdf8; font-weight: 600; margin-top: 4px; }
+
+  /* Main content */
+  .content { max-width: 1000px; margin: 0 auto; }
+
+  /* Sections */
+  .brd-section {
+    margin-bottom: 48px;
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 28px;
+    border-left: 4px solid #475569;
+  }
+  .brd-section.s1 { border-left-color: #38bdf8; }
+  .brd-section.s2 { border-left-color: #22c55e; }
+  .brd-section.s3 { border-left-color: #eab308; }
+  .brd-section.s4 { border-left-color: #ef4444; }
+  .brd-section.s5 { border-left-color: #a78bfa; }
+  .brd-section.s6 { border-left-color: #f97316; }
+  .brd-section.s7 { border-left-color: #ec4899; }
+  .brd-section.s8 { border-left-color: #14b8a6; }
+
+  .brd-section h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #0f172a;
+  }
+  .brd-section.s1 h2 { color: #38bdf8; }
+  .brd-section.s2 h2 { color: #22c55e; }
+  .brd-section.s3 h2 { color: #eab308; }
+  .brd-section.s4 h2 { color: #ef4444; }
+  .brd-section.s5 h2 { color: #a78bfa; }
+  .brd-section.s6 h2 { color: #f97316; }
+  .brd-section.s7 h2 { color: #ec4899; }
+  .brd-section.s8 h2 { color: #14b8a6; }
+
+  .brd-section h3 { font-size: 15px; color: #cbd5e1; margin: 20px 0 10px; }
+  .brd-section h4 { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin: 16px 0 8px; }
+
+  .brd-section p { font-size: 14px; color: #94a3b8; margin-bottom: 12px; }
+
+  .brd-section ul, .brd-section ol { padding-left: 20px; margin-bottom: 12px; }
+  .brd-section li { font-size: 13px; color: #94a3b8; line-height: 1.8; }
+  .brd-section li strong { color: #cbd5e1; }
+
+  /* Tables */
+  .brd-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 16px;
+    font-size: 13px;
+  }
+  .brd-table th {
+    background: #0f172a;
+    color: #64748b;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid #334155;
+    white-space: nowrap;
+  }
+  .brd-table td {
+    padding: 10px 14px;
+    color: #94a3b8;
+    border-bottom: 1px solid #0f172a;
+    vertical-align: top;
+  }
+  .brd-table tr:hover td { background: rgba(15, 23, 42, 0.5); }
+
+  /* Tags */
+  .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin: 1px; }
+  .tag.p0 { background: #450a0a; color: #fca5a5; }
+  .tag.p1 { background: #451a03; color: #fdba74; }
+  .tag.p2 { background: #1c1917; color: #a8a29e; }
+  .tag.must { background: #052e16; color: #86efac; }
+  .tag.should { background: #1e1b4b; color: #818cf8; }
+  .tag.could { background: #1c1917; color: #a8a29e; }
+
+  /* Requirement cards */
+  .req-card {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 10px 0;
+    border: 1px solid #1e293b;
+  }
+  .req-card .req-id {
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-bottom: 6px;
+  }
+  .req-card .req-id.green { color: #22c55e; }
+  .req-card .req-id.red { color: #ef4444; }
+  .req-card .req-id.blue { color: #38bdf8; }
+  .req-card .req-id.yellow { color: #eab308; }
+  .req-card .req-id.purple { color: #a78bfa; }
+
+  .req-card .req-title { font-size: 14px; font-weight: 600; color: #f1f5f9; margin-bottom: 8px; }
+  .req-card .req-desc { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+  .req-card .req-ac { font-size: 12px; color: #64748b; }
+  .req-card .req-ac strong { color: #94a3b8; }
+
+  /* Callout box */
+  .callout {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 16px;
+    border-left: 3px solid #38bdf8;
+    margin: 16px 0;
+  }
+  .callout.warn { border-left-color: #eab308; }
+  .callout.danger { border-left-color: #ef4444; }
+  .callout p { margin: 0; font-size: 13px; }
+
+  /* TOC */
+  .toc {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 40px;
+  }
+  .toc h3 { font-size: 14px; color: #38bdf8; margin-bottom: 12px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { font-size: 13px; color: #94a3b8; line-height: 2; }
+  .toc a { color: #38bdf8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Print styles */
+  @media print {
+    body { background: #fff; color: #1a1a1a; padding: 20px; }
+    .brd-section { background: #f8f8f8; border-color: #ccc; }
+    .brd-section h2 { color: #1a1a1a !important; }
+    .brd-section p, .brd-section li { color: #333; }
+    .meta-item { background: #f0f0f0; }
+    .brd-table th { background: #eee; color: #666; }
+    .brd-table td { color: #333; }
+  }
+
+  @media (max-width: 768px) {
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== DOCUMENT HEADER ===================== -->
+<div class="doc-header">
+  <h1>Business Requirements Document</h1>
+  <p class="subtitle">Provider Reconciliation System — ixigo Flights</p>
+  <div class="meta-grid">
+    <div class="meta-item">
+      <div class="label">Document Version</div>
+      <div class="value">v1.0</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Date</div>
+      <div class="value">23 Feb 2026</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Author</div>
+      <div class="value">Neeraj Kumar</div>
+    </div>
+    <div class="meta-item">
+      <div class="label">Status</div>
+      <div class="value">Draft</div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ===================== TABLE OF CONTENTS ===================== -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#s1">Executive Summary & Objectives</a></li>
+    <li><a href="#s2">Scope — Deliverables & Reports</a></li>
+    <li><a href="#s3">Functional Requirements — Booking Reconciliation</a></li>
+    <li><a href="#s4">Functional Requirements — Cancellation Reconciliation</a></li>
+    <li><a href="#s5">Functional Requirements — Reschedule Reconciliation</a></li>
+    <li><a href="#s6">Functional Requirements — Change Logs & Audit Trail</a></li>
+    <li><a href="#s7">Functional Requirements — Tech Losses & Customer Delight</a></li>
+    <li><a href="#s8">Non-Functional Requirements</a></li>
+    <li><a href="#s9">Data Architecture & Integration</a></li>
+    <li><a href="#s10">Stakeholders & RACI</a></li>
+    <li><a href="#s11">Acceptance Criteria & Success Metrics</a></li>
+    <li><a href="#s12">Risks & Dependencies</a></li>
+    <li><a href="#s13">Phased Rollout Plan</a></li>
+    <li><a href="#s14">Glossary</a></li>
+  </ol>
+</div>
+
+<!-- ===================== S1: EXECUTIVE SUMMARY ===================== -->
+<div class="brd-section s1" id="s1">
+  <h2>1. Executive Summary & Objectives</h2>
+
+  <h3>1.1 Background</h3>
+  <p>ixigo Flights works with multiple suppliers (airlines directly + aggregators like TBO, Cleartrip B2B, Riya, etc.) to book flight tickets. After a booking/cancellation/reschedule, ixigo's records must match the supplier's records and the airline's records. Discrepancies lead to <strong>revenue leakage, incorrect refunds, orphan PNRs,</strong> and <strong>poor customer experience</strong>.</p>
+  <p>Currently, reconciliation is largely manual or partially automated with gaps in coverage. This project builds a <strong>comprehensive, automated reconciliation system</strong> that matches ixigo data against provider/airline data across all lifecycle events (booking, cancellation, reschedule).</p>
+
+  <h3>1.2 Business Objectives</h3>
+  <ol>
+    <li><strong>Eliminate revenue leakage</strong> — Detect fare mismatches, extra PNRs, and refund shortfalls that cost ixigo money</li>
+    <li><strong>Reduce provider recoverable ageing</strong> — Track and recover pending refunds faster (target: &lt;7 days avg)</li>
+    <li><strong>Achieve 99.5%+ PNR match rate</strong> — Every booking on ixigo has a verified matching record at the provider and airline</li>
+    <li><strong>Automate exception handling</strong> — Auto-close small deltas (≤₹50), auto-escalate large ones (&gt;₹500)</li>
+    <li><strong>Enable data-driven provider negotiations</strong> — Historical mismatch data as leverage for better SLAs and commercials</li>
+    <li><strong>Map all tech losses and customer delight to DWH</strong> — Enable trend analysis and root cause attribution</li>
+  </ol>
+
+  <h3>1.3 Success Criteria</h3>
+  <table class="brd-table">
+    <thead>
+      <tr><th>Metric</th><th>Current (Estimated)</th><th>Target</th><th>Timeline</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>PNR Match Rate</td><td>~95-97%</td><td>&gt;99.5%</td><td>3 months post-launch</td></tr>
+      <tr><td>Fare Mismatch Detection</td><td>Manual / sampled</td><td>100% automated daily</td><td>Launch</td></tr>
+      <tr><td>Avg Refund Ageing</td><td>~15-20 days</td><td>&lt;7 days</td><td>6 months post-launch</td></tr>
+      <tr><td>Provider Recoverable Visibility</td><td>Partial</td><td>100% tracked</td><td>Launch</td></tr>
+      <tr><td>Tech Loss → DWH Coverage</td><td>Partial</td><td>100%</td><td>Phase 2</td></tr>
+      <tr><td>Manual Recon Effort</td><td>~X person-hours/day</td><td>Reduced by 80%</td><td>6 months post-launch</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== S2: SCOPE ===================== -->
+<div class="brd-section s2" id="s2">
+  <h2>2. Scope — Deliverables & Reports</h2>
+
+  <h3>2.1 In Scope</h3>
+  <table class="brd-table">
+    <thead>
+      <tr><th>#</th><th>Deliverable</th><th>Sub-Reports</th><th>Priority</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>D1</td>
+        <td><strong>Booking Recon Reports</strong></td>
+        <td>PNR match (incl. extra PNR detection), Seat/meal details match, Published fare mismatch, Offered fare mismatch</td>
+        <td><span class="tag must">Must Have</span></td>
+      </tr>
+      <tr>
+        <td>D2</td>
+        <td><strong>Change Logs & Timestamp Reporting</strong></td>
+        <td>State change tracking with timestamps, Before/after delta, Audit trail, Timeline view</td>
+        <td><span class="tag must">Must Have</span></td>
+      </tr>
+      <tr>
+        <td>D3</td>
+        <td><strong>Cancellation Reports</strong></td>
+        <td>Cancelled state match, Refund amount 3-way match, Split PNR storage, Seat/meal refund mismatch (CMS condition vs amount), Ageing & provider recoverable calculation</td>
+        <td><span class="tag must">Must Have</span></td>
+      </tr>
+      <tr>
+        <td>D4</td>
+        <td><strong>Tech Losses & Customer Delight → DWH</strong></td>
+        <td>Tech loss identification & categorization, Customer delight mapping, DWH integration for dashboards</td>
+        <td><span class="tag should">Should Have</span></td>
+      </tr>
+      <tr>
+        <td>D5</td>
+        <td><strong>Reschedule Reports</strong></td>
+        <td>Reschedule state match, Rescheduled PNR/split PNR storage, Reschedule amount mismatch (fare diff + airline charges)</td>
+        <td><span class="tag must">Must Have</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 Out of Scope (for this phase)</h3>
+  <ul>
+    <li>Hotel / bus / train reconciliation (flights only)</li>
+    <li>Payment gateway reconciliation (separate system)</li>
+    <li>GST/tax filing reconciliation (downstream of this system)</li>
+    <li>Real-time price monitoring / fare intelligence</li>
+    <li>Provider onboarding / contract management</li>
+  </ul>
+</div>
+
+<!-- ===================== S3: BOOKING RECON ===================== -->
+<div class="brd-section s3" id="s3">
+  <h2>3. Functional Requirements — Booking Reconciliation</h2>
+
+  <div class="req-card">
+    <div class="req-id green">BR-001</div>
+    <div class="req-title">PNR Match Report</div>
+    <div class="req-desc">The system shall compare PNR records across three sources (ixigo Booking DB, Provider settlement/booking file, Airline GDS/NDC retrieve) and produce a daily match report classifying each PNR as: <strong>Matched</strong>, <strong>Extra PNR</strong> (exists in provider but not ixigo), or <strong>Orphan PNR</strong> (exists in ixigo but not provider/airline).</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: For every booking made on day D, the recon report for D+1 includes a match/mismatch status.<br>
+      AC2: Extra PNRs are flagged with provider name, PNR, passenger details, and flight date.<br>
+      AC3: Orphan PNRs trigger an automated airline PNR retrieve to confirm actual status.<br>
+      AC4: Duplicate PNR detection (same pax + same flight + multiple PNRs) is highlighted separately.<br>
+      AC5: Report is filterable by provider, airline, date range, and match status.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id green">BR-002</div>
+    <div class="req-title">Seat/Meal Details Match</div>
+    <div class="req-desc">The system shall compare ancillary (seat + meal) details stored in ixigo's Ancillary DB against the airline's PNR retrieve response (SSR codes). Any mismatch where a user paid for a seat/meal but it doesn't exist on the airline PNR must be flagged.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Each booking with ancillary add-ons is checked against airline SSR confirmation.<br>
+      AC2: Mismatches are categorized: seat mismatch, meal mismatch, both, or ancillary missing entirely.<br>
+      AC3: For "ancillary missing" cases, an automated refund eligibility check is triggered.<br>
+      AC4: Report shows: Booking ID, PNR, booked seat/meal, confirmed seat/meal, mismatch type.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id green">BR-003</div>
+    <div class="req-title">Published Fare Mismatch</div>
+    <div class="req-desc">The system shall compare the published fare stored in ixigo's booking record against the airline's actual tariff for that flight/class/date. The comparison must include component-level breakdown: base fare, YQ, YR, airport taxes (PSF, UDF), and any other surcharges.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Every booking's published fare is compared at the component level (not just total).<br>
+      AC2: Mismatches exceeding ±₹50 are flagged for investigation.<br>
+      AC3: The report shows both the total delta and per-component deltas.<br>
+      AC4: Historical trend of published fare mismatches per provider is available.<br>
+      AC5: Margin leakage (ixigo published &lt; airline actual) is calculated in ₹ per booking.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id green">BR-004</div>
+    <div class="req-title">Offered Fare Mismatch</div>
+    <div class="req-desc">The system shall compare the fare offered to the user on ixigo's search/booking flow against the fare actually charged by the provider. This captures the "what user saw" vs "what provider billed" gap, including convenience fees, discounts, and promo codes.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Offered fare is captured from the search/booking log (pre-payment snapshot).<br>
+      AC2: Provider charge is captured from the booking confirmation / settlement file.<br>
+      AC3: Delta is calculated: offered − provider charge. Positive = ixigo profit, Negative = ixigo loss.<br>
+      AC4: Promo code / discount bookings are tagged separately (offered fare may intentionally differ).<br>
+      AC5: Report supports drill-down by provider, airline, route, and fare class.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== S4: CANCELLATION RECON ===================== -->
+<div class="brd-section s4" id="s4">
+  <h2>4. Functional Requirements — Cancellation Reconciliation</h2>
+
+  <div class="req-card">
+    <div class="req-id red">CR-001</div>
+    <div class="req-title">Cancelled State Match</div>
+    <div class="req-desc">The system shall perform a 3-way state comparison for every cancellation: ixigo cancellation status vs provider cancellation status vs airline PNR status. Any state disagreement is a critical mismatch requiring immediate action.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: All cancellations from day D are checked for state consistency by D+1.<br>
+      AC2: State combinations are classified with severity:<br>
+      &nbsp;&nbsp;- All cancelled → <span class="tag must">Match (auto-close)</span><br>
+      &nbsp;&nbsp;- ixigo cancelled + airline active → <span class="tag p0">P0 — Revenue leak</span><br>
+      &nbsp;&nbsp;- Airline cancelled + ixigo active → <span class="tag p0">P0 — User has invalid ticket</span><br>
+      &nbsp;&nbsp;- Provider cancelled + airline active → <span class="tag p1">P1 — Provider error</span><br>
+      AC3: P0 mismatches trigger automated alerts to Supply and CX teams within 1 hour.<br>
+      AC4: Report is filterable by provider, airline, cancellation date, and severity.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id red">CR-002</div>
+    <div class="req-title">Refund Amount 3-Way Match</div>
+    <div class="req-desc">For every cancellation, the system shall perform a 3-way refund comparison:<br>
+    <strong>Source A:</strong> ixigo's assumed penalty based on B2B fare rules / API response<br>
+    <strong>Source B:</strong> Provider's penalty as stated in their cancellation/settlement file<br>
+    <strong>Source C:</strong> Actual refund amount credited to ixigo's account by the provider</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: All three sources are compared for every cancellation. Tolerance: ±₹10.<br>
+      AC2: Mismatch between A and B → "Penalty Mismatch" — provider applied different rules than expected.<br>
+      AC3: Mismatch between B and C → "Credit Mismatch" — provider acknowledged refund but didn't pay it.<br>
+      AC4: The system calculates <strong>Provider Recoverable = Expected Refund (A) − Actual Received (C)</strong>.<br>
+      AC5: <strong>Ageing</strong> is tracked: days since cancellation date where Provider Recoverable &gt; ₹0.<br>
+      AC6: Auto-escalation rules: Ageing &gt;7 days → alert to Supply; &gt;15 days → alert to Supply + Finance lead; &gt;30 days → flag for write-off review.<br>
+      AC7: Monthly provider-wise recoverable summary is generated for Finance.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id red">CR-003</div>
+    <div class="req-title">Split PNR Storage (from Airline)</div>
+    <div class="req-desc">When an airline splits a PNR (e.g., partial cancellation in a multi-passenger booking), the system shall store the mapping between the original PNR and all resulting split PNRs. This mapping is critical for accurate per-passenger refund tracking.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: A "PNR Split Map" table stores: Original PNR → [Split PNR 1, Split PNR 2, ...] with passenger mapping.<br>
+      AC2: Split PNRs are detected via provider notification, airline PNR retrieve, or manual entry.<br>
+      AC3: Refund tracking is per-split-PNR (not just per original PNR).<br>
+      AC4: The cancellation recon report links split PNRs back to the original booking.<br>
+      AC5: Alert when a refund is issued against the original PNR but split PNRs are still active.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id red">CR-004</div>
+    <div class="req-title">Seat/Meal Refund Mismatch</div>
+    <div class="req-desc">The system shall compare the ancillary refund amount against the CMS-defined refund conditions for that specific airline and ancillary type. Different airlines have different refund policies for seats and meals (some are fully refundable, some have time-based conditions, some are non-refundable).</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: For every cancelled booking with ancillaries, the system checks CMS refund rules for that airline.<br>
+      AC2: CMS condition (e.g., "refundable if cancelled &gt;4 hrs before departure") is evaluated against the actual cancellation timestamp.<br>
+      AC3: Expected ancillary refund (per CMS) is compared with actual ancillary refund (from provider).<br>
+      AC4: Mismatch report shows: CMS rule, expected amount, actual amount, delta, airline, provider.<br>
+      AC5: Supports ancillary types: seat, meal, excess baggage, priority boarding.
+    </div>
+  </div>
+</div>
+
+<!-- ===================== S5: RESCHEDULE RECON ===================== -->
+<div class="brd-section s5" id="s5">
+  <h2>5. Functional Requirements — Reschedule Reconciliation</h2>
+
+  <div class="req-card">
+    <div class="req-id purple">RS-001</div>
+    <div class="req-title">Reschedule State Match</div>
+    <div class="req-desc">The system shall compare reschedule status across ixigo, provider, and airline for every reschedule transaction. A "state mismatch" means the user's itinerary on ixigo doesn't match what the airline actually has — leading to the user showing up for the wrong flight.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: All reschedules from day D are checked by D+1.<br>
+      AC2: State combinations classified:<br>
+      &nbsp;&nbsp;- All rescheduled → Match<br>
+      &nbsp;&nbsp;- ixigo rescheduled + airline shows original → <span class="tag p0">P0 — Reschedule didn't happen</span><br>
+      &nbsp;&nbsp;- Airline rescheduled + ixigo shows original → <span class="tag p0">P0 — User has wrong itinerary</span><br>
+      AC3: P0 mismatches trigger automated CX alert to proactively inform the user.<br>
+      AC4: Airline-initiated schedule changes (not user-initiated) are tracked separately.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id purple">RS-002</div>
+    <div class="req-title">Rescheduled PNR / Split PNR Storage</div>
+    <div class="req-desc">When a reschedule results in a new PNR (common with some airlines/aggregators), the system shall store the old PNR → new PNR mapping. For multi-passenger bookings where only some passengers reschedule, the split PNR scenario must also be handled.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: "PNR Reschedule Map" stores: Old PNR → New PNR, with flight details for both.<br>
+      AC2: Multi-pax split reschedules store: Old PNR → [New PNR (rescheduled pax), Old PNR (remaining pax)].<br>
+      AC3: Passenger-level mapping is maintained (which pax on which PNR).<br>
+      AC4: ixigo's Trip Details page reflects the new PNR for rescheduled passengers.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id purple">RS-003</div>
+    <div class="req-title">Reschedule Amount Mismatch</div>
+    <div class="req-desc">The system shall compare the amount charged to the user by ixigo against the actual amount charged by the airline. Reschedule amounts have three components: fare difference (new fare − old fare), airline reschedule charges (penalty/fee), and any applicable taxes.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: For every reschedule, the system captures and compares:<br>
+      &nbsp;&nbsp;- Fare difference: (new flight fare) − (old flight fare)<br>
+      &nbsp;&nbsp;- Airline reschedule charge/penalty<br>
+      &nbsp;&nbsp;- Taxes on the above<br>
+      AC2: Total charged to user by ixigo vs total charged by airline/provider — delta calculated.<br>
+      AC3: Overcharge (ixigo charged more than airline) flagged for potential user refund.<br>
+      AC4: Undercharge (ixigo charged less than airline) flagged as ixigo loss.<br>
+      AC5: Tolerance: ±₹50. Beyond tolerance → investigation ticket created.<br>
+      AC6: Report drill-down by provider, airline, route, and reschedule reason (user vs airline-initiated).
+    </div>
+  </div>
+</div>
+
+<!-- ===================== S6: CHANGE LOGS ===================== -->
+<div class="brd-section s6" id="s6">
+  <h2>6. Functional Requirements — Change Logs & Audit Trail</h2>
+
+  <div class="req-card">
+    <div class="req-id blue">CL-001</div>
+    <div class="req-title">State Change Tracking</div>
+    <div class="req-desc">The system shall log every state change in a booking's lifecycle as an immutable event with timestamps. This creates a complete timeline from booking creation through confirmation, modification, cancellation, reschedule, and refund.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Every state transition is logged with: booking ID, old state, new state, timestamp (IST), triggered by (system/user/agent/airline/provider).<br>
+      AC2: Timestamps are captured from both ixigo side and provider side (when available).<br>
+      AC3: The delta between ixigo timestamp and provider timestamp is calculated and stored.<br>
+      AC4: Supports querying: "Show me all state changes for booking X in chronological order."<br>
+      AC5: Log is append-only (immutable) — no updates or deletes allowed.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id blue">CL-002</div>
+    <div class="req-title">Timestamp-Based Reporting</div>
+    <div class="req-desc">The system shall generate reports based on timestamp analysis to identify delays, SLA breaches, and process bottlenecks. For example: time from cancellation request to provider acknowledgment, time from provider acknowledgment to refund credit.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Report shows duration between key milestones:<br>
+      &nbsp;&nbsp;- Booking: search → payment → PNR confirmation<br>
+      &nbsp;&nbsp;- Cancellation: user request → ixigo processing → provider cancel confirm → refund credit<br>
+      &nbsp;&nbsp;- Reschedule: user request → ixigo processing → provider reschedule confirm → new PNR<br>
+      AC2: SLA breach detection: flag transactions where any step exceeds defined thresholds.<br>
+      AC3: Provider-wise SLA performance dashboard.
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id blue">CL-003</div>
+    <div class="req-title">Before/After Delta Logging</div>
+    <div class="req-desc">For every modification event (fare change, seat change, PNR change, reschedule), the system shall store the before and after values to enable precise impact analysis.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Change log format: { field, old_value, new_value, changed_at, changed_by }.<br>
+      AC2: Fields tracked: PNR, flight number, departure date/time, fare components, seat, meal, passenger details.<br>
+      AC3: Linkable to specific recon mismatches (e.g., "this fare mismatch was caused by this change event").
+    </div>
+  </div>
+</div>
+
+<!-- ===================== S7: TECH LOSSES ===================== -->
+<div class="brd-section s7" id="s7">
+  <h2>7. Functional Requirements — Tech Losses & Customer Delight</h2>
+
+  <div class="req-card">
+    <div class="req-id yellow">TL-001</div>
+    <div class="req-title">Tech Loss Identification & Categorization</div>
+    <div class="req-desc">The system shall identify all financial losses attributable to technical issues (not user or airline actions) and categorize them by root cause. Tech losses are ixigo-absorbed costs that should be tracked for engineering prioritization and provider negotiation.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Tech loss categories include (at minimum): API timeout, fare feed error, duplicate booking, ancillary booking failure, payment-booking state mismatch, rebook at higher fare.<br>
+      AC2: Each tech loss record includes: booking ID, loss amount (₹), category, root cause description, provider, airline, route.<br>
+      AC3: Automated classification where possible (e.g., if rebooked within 5 min at higher fare → "fare feed error").<br>
+      AC4: Manual override for classification (Supply/Finance can re-categorize).
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id yellow">TL-002</div>
+    <div class="req-title">Customer Delight Mapping</div>
+    <div class="req-desc">The system shall track all customer delight actions (vouchers, fare absorption, upgrades, over-refunds) and map them back to the originating booking event. This enables Finance to track goodwill spend and Product to measure its impact on retention.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Delight records include: booking ID, delight type, amount (₹), approved by, approval date, originating event (booking failure, wrong seat, delayed refund, etc.).<br>
+      AC2: Monthly delight spend report by category, provider, and originating event type.<br>
+      AC3: Linkage to tech loss where applicable (e.g., delight issued because of a tech loss).
+    </div>
+  </div>
+
+  <div class="req-card">
+    <div class="req-id yellow">TL-003</div>
+    <div class="req-title">DWH Integration</div>
+    <div class="req-desc">All tech loss and customer delight records shall be pushed to the Data Warehouse for cross-functional analytics, trending, and dashboarding.</div>
+    <div class="req-ac">
+      <strong>Acceptance Criteria:</strong><br>
+      AC1: Daily ETL pushes tech loss + delight data to DWH.<br>
+      AC2: DWH dimensions: provider, airline, route, booking type, loss category, delight type, time period.<br>
+      AC3: Dashboard showing: monthly tech loss trend, top loss categories, top providers by loss, delight spend vs budget.<br>
+      AC4: Data source and current logic to be obtained from <strong>Shubham Gadia</strong>.
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Dependency:</strong> Tech loss categorization logic and customer delight approval workflow are currently owned by Shubham Gadia. A handoff meeting is needed to document the existing logic before building the automated version.</p>
+  </div>
+</div>
+
+<!-- ===================== S8: NON-FUNCTIONAL ===================== -->
+<div class="brd-section s8" id="s8">
+  <h2>8. Non-Functional Requirements</h2>
+
+  <table class="brd-table">
+    <thead>
+      <tr><th>ID</th><th>Category</th><th>Requirement</th><th>Target</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>NF-001</td><td><strong>Performance</strong></td><td>Daily recon batch job completes processing for all bookings from previous day</td><td>&lt; 2 hours for up to 50K bookings/day</td></tr>
+      <tr><td>NF-002</td><td><strong>Availability</strong></td><td>Recon reports available for consumption by stakeholders</td><td>By 8 AM IST daily (T+1 for previous day)</td></tr>
+      <tr><td>NF-003</td><td><strong>Scalability</strong></td><td>Handle growth in booking volume without architecture change</td><td>Up to 200K bookings/day</td></tr>
+      <tr><td>NF-004</td><td><strong>Data Retention</strong></td><td>Recon results and change logs retained for audit</td><td>3 years rolling</td></tr>
+      <tr><td>NF-005</td><td><strong>Accuracy</strong></td><td>Fare comparison at component level with correct rounding</td><td>100% (no false positives from rounding)</td></tr>
+      <tr><td>NF-006</td><td><strong>Alerting</strong></td><td>P0 mismatches (wrong ticket, revenue leak) trigger alert</td><td>Within 1 hour of detection</td></tr>
+      <tr><td>NF-007</td><td><strong>Idempotency</strong></td><td>Re-running the recon for the same day produces the same result</td><td>100%</td></tr>
+      <tr><td>NF-008</td><td><strong>Audit Compliance</strong></td><td>Change logs are immutable (append-only)</td><td>No delete/update capability</td></tr>
+      <tr><td>NF-009</td><td><strong>Access Control</strong></td><td>Role-based access to reports (Supply, Finance, Product, CX)</td><td>4 roles minimum</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== S9: DATA ARCHITECTURE ===================== -->
+<div class="brd-section s1" id="s9">
+  <h2>9. Data Architecture & Integration</h2>
+
+  <h3>9.1 Data Sources</h3>
+  <table class="brd-table">
+    <thead>
+      <tr><th>Source</th><th>Owner</th><th>Data Format</th><th>Frequency</th><th>Integration Method</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>ixigo Booking DB</td><td>Booking Team</td><td>SQL / API</td><td>Real-time</td><td>DB read replica / Internal API</td></tr>
+      <tr><td>ixigo Ancillary DB</td><td>Ancillary Team</td><td>SQL / API</td><td>Real-time</td><td>DB read replica / Internal API</td></tr>
+      <tr><td>ixigo Cancellation API Logs</td><td>Booking Team</td><td>Event stream</td><td>Real-time</td><td>Event bus (Kafka/SQS)</td></tr>
+      <tr><td>ixigo CMS (Fare Rules)</td><td>Supply Team</td><td>API</td><td>On-demand</td><td>Internal API</td></tr>
+      <tr><td>Provider Settlement File</td><td>Provider</td><td>CSV / SFTP / API</td><td>Daily (T+1)</td><td>SFTP pull / API fetch</td></tr>
+      <tr><td>Provider Cancellation File</td><td>Provider</td><td>CSV / SFTP / API</td><td>Daily (T+1)</td><td>SFTP pull / API fetch</td></tr>
+      <tr><td>Airline GDS/NDC Retrieve</td><td>Airline</td><td>PNR Retrieve API</td><td>On-demand / Batch</td><td>GDS API / NDC API</td></tr>
+      <tr><td>ixigo Payment DB</td><td>Payments Team</td><td>SQL</td><td>Real-time</td><td>DB read replica</td></tr>
+      <tr><td>ixigo Account Statement</td><td>Finance</td><td>Bank file / Portal</td><td>Daily</td><td>File upload / API</td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.2 Key Data Entities</h3>
+  <table class="brd-table">
+    <thead>
+      <tr><th>Entity</th><th>Key Fields</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Recon Record</strong></td><td>booking_id, recon_date, recon_type (booking/cancel/reschedule), match_status, mismatch_details, resolution_status</td><td>Core recon result for each booking</td></tr>
+      <tr><td><strong>PNR Map</strong></td><td>original_pnr, split_pnr, reschedule_pnr, pax_mapping, event_type, event_date</td><td>Track PNR changes and splits</td></tr>
+      <tr><td><strong>Fare Comparison</strong></td><td>booking_id, component (base/YQ/tax/etc.), ixigo_amount, provider_amount, airline_amount, delta</td><td>Component-level fare match</td></tr>
+      <tr><td><strong>Refund Tracker</strong></td><td>booking_id, expected_refund, provider_stated_refund, actual_credit, ageing_days, recoverable_amount</td><td>3-way refund match + ageing</td></tr>
+      <tr><td><strong>Change Log</strong></td><td>booking_id, event_type, field, old_value, new_value, timestamp, triggered_by</td><td>Immutable audit trail</td></tr>
+      <tr><td><strong>Tech Loss</strong></td><td>booking_id, loss_amount, category, root_cause, provider, airline, route</td><td>Tech loss attribution</td></tr>
+      <tr><td><strong>Customer Delight</strong></td><td>booking_id, delight_type, amount, approved_by, originating_event</td><td>Goodwill tracking</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== S10: RACI ===================== -->
+<div class="brd-section s6" id="s10">
+  <h2>10. Stakeholders & RACI</h2>
+
+  <table class="brd-table">
+    <thead>
+      <tr><th>Activity</th><th>Product (Recon)</th><th>Engineering</th><th>Supply</th><th>Finance</th><th>CX</th><th>Data/Analytics</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Define recon rules & thresholds</td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+        <td>C</td>
+        <td><strong style="color:#38bdf8;">A</strong></td>
+        <td>C</td>
+        <td>I</td>
+        <td>I</td>
+      </tr>
+      <tr>
+        <td>Build recon engine & reports</td>
+        <td><strong style="color:#38bdf8;">A</strong></td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+        <td>C</td>
+        <td>I</td>
+        <td>I</td>
+        <td>C</td>
+      </tr>
+      <tr>
+        <td>Provider file ingestion setup</td>
+        <td>C</td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+        <td><strong style="color:#38bdf8;">A</strong></td>
+        <td>I</td>
+        <td>I</td>
+        <td>I</td>
+      </tr>
+      <tr>
+        <td>Resolve fare mismatches</td>
+        <td>I</td>
+        <td>I</td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+        <td><strong style="color:#38bdf8;">A</strong></td>
+        <td>I</td>
+        <td>I</td>
+      </tr>
+      <tr>
+        <td>Resolve extra/orphan PNRs</td>
+        <td>I</td>
+        <td>C</td>
+        <td><strong style="color:#22c55e;">R</strong>/<strong style="color:#38bdf8;">A</strong></td>
+        <td>I</td>
+        <td>C</td>
+        <td>I</td>
+      </tr>
+      <tr>
+        <td>User-facing impact (wrong ticket)</td>
+        <td>I</td>
+        <td>I</td>
+        <td>C</td>
+        <td>I</td>
+        <td><strong style="color:#22c55e;">R</strong>/<strong style="color:#38bdf8;">A</strong></td>
+        <td>I</td>
+      </tr>
+      <tr>
+        <td>Tech loss → DWH mapping</td>
+        <td><strong style="color:#38bdf8;">A</strong></td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+        <td>I</td>
+        <td>C</td>
+        <td>I</td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+      </tr>
+      <tr>
+        <td>Provider recoverable tracking</td>
+        <td>C</td>
+        <td>I</td>
+        <td><strong style="color:#22c55e;">R</strong></td>
+        <td><strong style="color:#38bdf8;">A</strong></td>
+        <td>I</td>
+        <td>I</td>
+      </tr>
+      <tr>
+        <td>DWH dashboards</td>
+        <td>C</td>
+        <td>C</td>
+        <td>I</td>
+        <td>I</td>
+        <td>I</td>
+        <td><strong style="color:#22c55e;">R</strong>/<strong style="color:#38bdf8;">A</strong></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px; color:#64748b; margin-top:8px;"><strong style="color:#22c55e;">R</strong> = Responsible (does the work) &nbsp; <strong style="color:#38bdf8;">A</strong> = Accountable (owns the outcome) &nbsp; C = Consulted &nbsp; I = Informed</p>
+</div>
+
+<!-- ===================== S11: ACCEPTANCE CRITERIA ===================== -->
+<div class="brd-section s2" id="s11">
+  <h2>11. Acceptance Criteria & Success Metrics</h2>
+
+  <h3>11.1 Go-Live Criteria</h3>
+  <ol>
+    <li>All 5 deliverables (D1-D5) produce daily reports without manual intervention</li>
+    <li>PNR match report correctly identifies Extra and Orphan PNRs (validated against 1 week of manual recon)</li>
+    <li>Refund 3-way match correctly calculates provider recoverable (validated against Finance ledger)</li>
+    <li>Change logs capture every state transition with correct timestamps</li>
+    <li>P0 alerts (wrong ticket, revenue leak) fire within 1 hour of detection</li>
+    <li>Reports are accessible to Supply, Finance, and Product teams via dashboard or scheduled email</li>
+  </ol>
+
+  <h3>11.2 Success Metrics (Post-Launch)</h3>
+  <table class="brd-table">
+    <thead>
+      <tr><th>Metric</th><th>Measurement</th><th>Target</th><th>Review Frequency</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>PNR Match Rate</strong></td><td>Matched PNRs / Total PNRs</td><td>&gt;99.5%</td><td>Weekly</td></tr>
+      <tr><td><strong>Fare Mismatch Rate</strong></td><td>Bookings with &gt;₹50 delta / Total bookings</td><td>&lt;0.5%</td><td>Weekly</td></tr>
+      <tr><td><strong>Avg Refund Ageing</strong></td><td>Mean days from cancel to credit received</td><td>&lt;7 days</td><td>Monthly</td></tr>
+      <tr><td><strong>Provider Recoverable ₹</strong></td><td>Sum of all outstanding recoverable amounts</td><td>Month-on-month decrease</td><td>Monthly</td></tr>
+      <tr><td><strong>Cancellation State Match</strong></td><td>3-way aligned / Total cancellations</td><td>&gt;99%</td><td>Weekly</td></tr>
+      <tr><td><strong>Reschedule State Match</strong></td><td>3-way aligned / Total reschedules</td><td>&gt;99%</td><td>Weekly</td></tr>
+      <tr><td><strong>Monthly Tech Loss</strong></td><td>Total ₹ attributed to tech issues</td><td>Month-on-month decrease</td><td>Monthly</td></tr>
+      <tr><td><strong>Manual Recon Effort</strong></td><td>Person-hours spent on manual recon</td><td>Reduced by 80%</td><td>Quarterly</td></tr>
+      <tr><td><strong>Exception Resolution Time</strong></td><td>Mean time from flag to resolution</td><td>&lt;48 hrs (P1), &lt;24 hrs (P0)</td><td>Weekly</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== S12: RISKS ===================== -->
+<div class="brd-section s4" id="s12">
+  <h2>12. Risks & Dependencies</h2>
+
+  <table class="brd-table">
+    <thead>
+      <tr><th>Risk / Dependency</th><th>Impact</th><th>Likelihood</th><th>Mitigation</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Provider file format inconsistency</strong> — Each provider sends data in different formats</td>
+        <td>High</td>
+        <td>High</td>
+        <td>Build provider-specific parsers with a common output schema. Start with top 3 providers by volume.</td>
+      </tr>
+      <tr>
+        <td><strong>Provider file delays</strong> — Some providers send T+2 or T+3 instead of T+1</td>
+        <td>Medium</td>
+        <td>High</td>
+        <td>Design the system to handle late-arriving data. Re-run recon when late files arrive. Track provider SLAs on file delivery.</td>
+      </tr>
+      <tr>
+        <td><strong>Airline GDS access limitations</strong> — Not all PNRs can be retrieved in bulk</td>
+        <td>High</td>
+        <td>Medium</td>
+        <td>Prioritize provider file as primary source. Use airline retrieve only for mismatches and spot checks.</td>
+      </tr>
+      <tr>
+        <td><strong>CMS fare rules not up-to-date</strong> — Stale rules lead to incorrect expected penalties</td>
+        <td>Medium</td>
+        <td>Medium</td>
+        <td>Build a CMS staleness check. Alert Supply when fare rules haven't been updated in &gt;30 days for active routes.</td>
+      </tr>
+      <tr>
+        <td><strong>Tech loss categorization logic undocumented</strong></td>
+        <td>Medium</td>
+        <td>High</td>
+        <td>Schedule handoff meeting with Shubham Gadia. Document current logic before building automated version.</td>
+      </tr>
+      <tr>
+        <td><strong>Split PNR detection relies on provider notification</strong></td>
+        <td>Medium</td>
+        <td>Medium</td>
+        <td>Supplement with periodic airline PNR retrieve for bookings with partial cancellations/reschedules.</td>
+      </tr>
+      <tr>
+        <td><strong>Engineering bandwidth</strong> — Multiple integrations with different providers</td>
+        <td>High</td>
+        <td>Medium</td>
+        <td>Phase rollout by provider priority (highest volume first). Reusable parser framework.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== S13: ROLLOUT ===================== -->
+<div class="brd-section s8" id="s13">
+  <h2>13. Phased Rollout Plan</h2>
+
+  <table class="brd-table">
+    <thead>
+      <tr><th>Phase</th><th>Duration</th><th>Deliverables</th><th>Providers</th><th>Key Milestone</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Phase 1</strong><br><span class="tag must">Foundation</span></td>
+        <td>6-8 weeks</td>
+        <td>
+          D1: Booking Recon (PNR match + fare match)<br>
+          D2: Change Logs (basic state tracking)
+        </td>
+        <td>Top 3 providers by volume</td>
+        <td>First automated daily recon report generated</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 2</strong><br><span class="tag should">Cancellation</span></td>
+        <td>4-6 weeks</td>
+        <td>
+          D3: Cancellation Reports (state match + 3-way refund match + ageing)<br>
+          D1 expansion: Seat/meal match added
+        </td>
+        <td>Top 3 providers + 2 more</td>
+        <td>Provider recoverable dashboard live</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 3</strong><br><span class="tag should">Reschedule + DWH</span></td>
+        <td>4-6 weeks</td>
+        <td>
+          D5: Reschedule Reports<br>
+          D4: Tech Losses & Customer Delight → DWH<br>
+          D3 expansion: Split PNR + seat/meal refund
+        </td>
+        <td>All active providers</td>
+        <td>100% recon coverage across booking lifecycle</td>
+      </tr>
+      <tr>
+        <td><strong>Phase 4</strong><br><span class="tag could">Automation</span></td>
+        <td>Ongoing</td>
+        <td>
+          Auto-resolution for small deltas (≤₹50)<br>
+          Auto-escalation workflows<br>
+          Anomaly detection (ML-based trend alerts)<br>
+          Self-serve dashboard for all stakeholders
+        </td>
+        <td>All providers</td>
+        <td>80% reduction in manual recon effort</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== S14: GLOSSARY ===================== -->
+<div class="brd-section s1" id="s14">
+  <h2>14. Glossary</h2>
+
+  <table class="brd-table">
+    <thead>
+      <tr><th>Term</th><th>Definition</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>PNR</strong></td><td>Passenger Name Record — unique booking identifier assigned by airline</td></tr>
+      <tr><td><strong>Split PNR</strong></td><td>When an airline divides one PNR into multiple PNRs (e.g., partial cancellation in a group booking)</td></tr>
+      <tr><td><strong>Published Fare</strong></td><td>The airline's official tariff for a flight/class/date, filed with regulatory bodies</td></tr>
+      <tr><td><strong>Offered Fare</strong></td><td>The fare shown to the user on ixigo's platform (may differ from published fare due to markup/discount)</td></tr>
+      <tr><td><strong>Provider</strong></td><td>The entity through which ixigo books the ticket — could be the airline directly or an aggregator (TBO, Cleartrip B2B, Riya, etc.)</td></tr>
+      <tr><td><strong>Settlement File</strong></td><td>A periodic file sent by the provider listing all bookings, cancellations, and financial transactions</td></tr>
+      <tr><td><strong>SSR</strong></td><td>Special Service Request — airline industry code for ancillaries (seats, meals, wheelchair, etc.)</td></tr>
+      <tr><td><strong>CMS</strong></td><td>Content Management System — ixigo's internal system storing fare rules, refund policies, and ancillary conditions per airline</td></tr>
+      <tr><td><strong>B2B Fare Rules</strong></td><td>The fare/cancellation/reschedule rules applicable to ixigo's B2B relationship with the provider (may differ from retail rules)</td></tr>
+      <tr><td><strong>Provider Recoverable</strong></td><td>The amount owed by the provider to ixigo — typically pending refunds from cancellations</td></tr>
+      <tr><td><strong>Ageing</strong></td><td>Number of days a refund/recoverable amount has been outstanding since the originating event</td></tr>
+      <tr><td><strong>GDS</strong></td><td>Global Distribution System — backend systems (Amadeus, Sabre, Travelport) used for airline inventory and booking</td></tr>
+      <tr><td><strong>NDC</strong></td><td>New Distribution Capability — IATA's modern API standard for airline retailing</td></tr>
+      <tr><td><strong>DWH</strong></td><td>Data Warehouse — centralized data store for analytics and reporting</td></tr>
+      <tr><td><strong>Tech Loss</strong></td><td>Financial loss caused by a technical issue in ixigo's systems (not user/airline fault), absorbed by ixigo</td></tr>
+      <tr><td><strong>Customer Delight</strong></td><td>Goodwill gestures (vouchers, refunds, upgrades) given to customers as compensation for poor experience</td></tr>
+      <tr><td><strong>T+1</strong></td><td>One day after the transaction date — the standard turnaround for daily reconciliation</td></tr>
+      <tr><td><strong>RACI</strong></td><td>Responsibility matrix — Responsible, Accountable, Consulted, Informed</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div>
+
+<footer style="text-align:center; padding:40px 0; color:#334155; font-size:12px;">
+  BRD v1.0 | Provider Reconciliation System | ixigo Flights | Draft — 23 Feb 2026
+</footer>
+
+</body>
+</html>

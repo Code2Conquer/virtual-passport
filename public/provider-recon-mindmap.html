@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ixigo Flights — Provider Reconciliation Mind Map</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; padding: 40px 20px; }
+  h1 { text-align: center; font-size: 28px; color: #fff; margin-bottom: 8px; }
+  .subtitle { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 40px; }
+
+  /* Section */
+  .section { max-width: 1400px; margin: 0 auto 60px; }
+  .section h2 { font-size: 20px; color: #38bdf8; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #1e293b; }
+
+  /* Mind Map Center */
+  .mm-center {
+    text-align: center;
+    background: linear-gradient(135deg, #1e40af, #7c3aed);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 16px 32px;
+    border-radius: 12px;
+    display: inline-block;
+    margin: 0 auto 30px;
+    width: 100%;
+  }
+
+  /* Top-level branches */
+  .mm-branches {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .mm-branch {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border-top: 3px solid #475569;
+  }
+  .mm-branch.booking { border-top-color: #22c55e; }
+  .mm-branch.changelog { border-top-color: #38bdf8; }
+  .mm-branch.cancel { border-top-color: #ef4444; }
+  .mm-branch.techloss { border-top-color: #eab308; }
+  .mm-branch.resched { border-top-color: #a78bfa; }
+
+  .mm-branch h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .mm-branch.booking h3 { color: #22c55e; }
+  .mm-branch.changelog h3 { color: #38bdf8; }
+  .mm-branch.cancel h3 { color: #ef4444; }
+  .mm-branch.techloss h3 { color: #eab308; }
+  .mm-branch.resched h3 { color: #a78bfa; }
+
+  .mm-branch ul { list-style: none; }
+  .mm-branch li { font-size: 12px; color: #94a3b8; padding: 4px 0 4px 16px; position: relative; line-height: 1.5; }
+  .mm-branch li::before { content: '→'; position: absolute; left: 0; color: #475569; }
+  .mm-branch li strong { color: #cbd5e1; }
+
+  /* Sub-items with deeper indentation */
+  .mm-branch .sub { padding-left: 32px; font-size: 11px; color: #64748b; }
+  .mm-branch .sub::before { content: '↳'; left: 16px; color: #334155; }
+
+  /* ASCII Flow */
+  .ascii-flow {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto 60px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #94a3b8;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .ascii-flow .green { color: #22c55e; }
+  .ascii-flow .yellow { color: #eab308; }
+  .ascii-flow .orange { color: #f97316; }
+  .ascii-flow .red { color: #ef4444; }
+  .ascii-flow .purple { color: #a78bfa; }
+  .ascii-flow .blue { color: #38bdf8; }
+  .ascii-flow .dim { color: #475569; }
+
+  /* Detail cards */
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .detail-card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #475569;
+  }
+  .detail-card.green-b { border-left-color: #22c55e; }
+  .detail-card.red-b { border-left-color: #ef4444; }
+  .detail-card.blue-b { border-left-color: #38bdf8; }
+  .detail-card.yellow-b { border-left-color: #eab308; }
+  .detail-card.purple-b { border-left-color: #a78bfa; }
+  .detail-card.orange-b { border-left-color: #f97316; }
+
+  .detail-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+  .detail-card.green-b h3 { color: #22c55e; }
+  .detail-card.red-b h3 { color: #ef4444; }
+  .detail-card.blue-b h3 { color: #38bdf8; }
+  .detail-card.yellow-b h3 { color: #eab308; }
+  .detail-card.purple-b h3 { color: #a78bfa; }
+  .detail-card.orange-b h3 { color: #f97316; }
+
+  .detail-card h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    margin: 12px 0 6px;
+    padding-top: 8px;
+    border-top: 1px solid #0f172a;
+  }
+  .detail-card h4:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+
+  .detail-card ul { list-style: none; }
+  .detail-card li { font-size: 12px; color: #94a3b8; line-height: 1.6; padding: 2px 0 2px 14px; position: relative; }
+  .detail-card li::before { content: '•'; position: absolute; left: 0; color: #475569; }
+  .detail-card li strong { color: #cbd5e1; }
+  .detail-card li.match { color: #4ade80; }
+  .detail-card li.match::before { content: '✓'; color: #22c55e; }
+  .detail-card li.mismatch { color: #fca5a5; }
+  .detail-card li.mismatch::before { content: '✗'; color: #ef4444; }
+  .detail-card li.alert { color: #fde68a; }
+  .detail-card li.alert::before { content: '⚠'; color: #eab308; }
+
+  /* 3-way match visual */
+  .three-way {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 12px 0;
+    border: 1px solid #1e293b;
+  }
+  .three-way h5 { font-size: 11px; color: #f97316; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .three-way-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+  .three-way-box {
+    flex: 1;
+    background: #1e293b;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+    text-align: center;
+    color: #cbd5e1;
+  }
+  .three-way-box.a { border: 1px solid #38bdf8; }
+  .three-way-box.b { border: 1px solid #a78bfa; }
+  .three-way-box.c { border: 1px solid #22c55e; }
+  .three-way-arrow { color: #475569; font-size: 14px; flex-shrink: 0; }
+
+  /* Data flow table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  .data-table th {
+    background: #0f172a;
+    color: #64748b;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #1e293b;
+  }
+  .data-table td {
+    padding: 8px 12px;
+    color: #94a3b8;
+    border-bottom: 1px solid #0f172a;
+  }
+  .data-table tr:hover td { background: #0f172a; }
+  .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin: 1px; }
+  .tag.source { background: #1e1b4b; color: #818cf8; }
+  .tag.action { background: #1a2e05; color: #86efac; }
+  .tag.output { background: #451a03; color: #fdba74; }
+  .tag.freq { background: #1c1917; color: #a8a29e; }
+
+  /* Stakeholder bar */
+  .stakeholder-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .stakeholder-chip {
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+  }
+  .stakeholder-chip.primary { border-color: #38bdf8; color: #38bdf8; }
+  .stakeholder-chip.secondary { border-color: #a78bfa; color: #a78bfa; }
+
+  /* SLA cards */
+  .sla-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .sla-card {
+    background: #1e293b;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #334155;
+  }
+  .sla-card h3 { font-size: 14px; color: #f97316; margin-bottom: 12px; }
+  .sla-card li { font-size: 12px; color: #94a3b8; line-height: 1.8; padding-left: 14px; position: relative; list-style: none; }
+  .sla-card li::before { content: '⚡'; position: absolute; left: 0; font-size: 10px; }
+
+  @media (max-width: 1024px) {
+    .mm-branches { grid-template-columns: 1fr 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .sla-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .mm-branches { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<h1>ixigo Flights — Provider Reconciliation</h1>
+<p class="subtitle">End-to-end recon with suppliers (airlines / aggregators) — Booking, Cancellation, Reschedule, Tech Losses</p>
+
+<!-- ===================== HIGH-LEVEL FLOW ===================== -->
+<div class="section">
+<h2>1. Reconciliation Data Flow</h2>
+<div class="ascii-flow"><span class="blue">                              PROVIDER RECONCILIATION — DATA FLOW</span>
+
+<span class="dim">  ┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐</span>
+<span class="dim">  │</span> <span class="blue">  ixigo Systems      </span><span class="dim">│     │</span> <span class="purple"> Provider / Airline   </span><span class="dim">│     │</span> <span class="green">  Recon Engine        </span><span class="dim">│</span>
+<span class="dim">  │                     │     │                     │     │                     │</span>
+<span class="dim">  │ • Booking DB        │     │ • Provider File     │     │ • Match / Mismatch  │</span>
+<span class="dim">  │ • Payment Gateway   │────▶│ • Airline GDS/NDC   │────▶│ • 3-Way Comparison  │</span>
+<span class="dim">  │ • CMS (Fare Rules)  │     │ • Settlement File   │     │ • Ageing Tracker    │</span>
+<span class="dim">  │ • Cancellation API  │     │ • Refund Statement  │     │ • Exception Report  │</span>
+<span class="dim">  │ • Reschedule API    │     │ • Reschedule Logs   │     │ • DWH Mapping       │</span>
+<span class="dim">  └─────────────────────┘     └─────────────────────┘     └─────────────────────┘</span>
+<span class="dim">                                                                  │</span>
+<span class="dim">                                              ┌──────────────────┼──────────────────┐</span>
+<span class="dim">                                              │                  │                  │</span>
+<span class="dim">                                              ▼                  ▼                  ▼</span>
+<span class="dim">                                    ┌──────────────┐   ┌──────────────┐   ┌──────────────┐</span>
+<span class="dim">                                    │</span> <span class="green"> MATCH ✓      </span><span class="dim">│   │</span> <span class="yellow"> MISMATCH ⚠  </span><span class="dim">│   │</span> <span class="red"> MISSING ✗   </span><span class="dim">│</span>
+<span class="dim">                                    │ Auto-close   │   │ Flag for     │   │ Extra PNR /  │</span>
+<span class="dim">                                    │ Mark recon'd │   │ investigation│   │ Orphan entry │</span>
+<span class="dim">                                    └──────────────┘   └──────────────┘   └──────────────┘</span>
+
+<span class="dim">  ── REPORT CATEGORIES ──────────────────────────────────────────────────────────────────</span>
+
+<span class="dim">  </span><span class="green">① BOOKING RECON</span><span class="dim">        </span><span class="blue">② CHANGE LOGS</span><span class="dim">          </span><span class="red">③ CANCELLATION RECON</span><span class="dim">      </span><span class="yellow">④ TECH LOSSES</span><span class="dim">       </span><span class="purple">⑤ RESCHEDULE RECON</span>
+<span class="dim">     PNR match             Timestamp tracking       Cancel state match          DWH mapping         State match</span>
+<span class="dim">     Fare match            State change logs        Refund 3-way match         Customer delight    PNR/split PNR</span>
+<span class="dim">     Seat/meal match       Audit trail              Split PNR storage          Loss attribution    Amount mismatch</span>
+<span class="dim">     Extra PNR detect      Before/after delta       Seat/meal refund match     Recovery tracking   Charge breakdown</span></div>
+</div>
+
+<!-- ===================== MIND MAP ===================== -->
+<div class="section">
+<h2>2. Mind Map — 5 Reconciliation Pillars</h2>
+<div class="mm-center">PROVIDER RECONCILIATION — END SUPPLIER (AIRLINE / AGGREGATOR)</div>
+
+<div class="mm-branches">
+
+<!-- Branch 1: Booking Recon -->
+<div class="mm-branch booking">
+  <h3>1. Booking Recon Reports</h3>
+  <ul>
+    <li><strong>PNR Match</strong> — ixigo PNR vs provider PNR vs airline PNR</li>
+    <li class="sub">Detect extra PNRs (provider created but ixigo has no record)</li>
+    <li class="sub">Detect orphan PNRs (ixigo has record but airline doesn't)</li>
+    <li><strong>Seat/Meal Details Match</strong></li>
+    <li class="sub">ixigo selected seat/meal vs what's on the airline PNR</li>
+    <li class="sub">SSR (Special Service Request) code match</li>
+    <li><strong>Published Fare Mismatch</strong></li>
+    <li class="sub">ixigo stored published fare vs airline's actual published fare</li>
+    <li class="sub">Detect margin leakage or overcharge</li>
+    <li><strong>Offered Fare Mismatch</strong></li>
+    <li class="sub">Fare shown to user (offered) vs fare charged by provider</li>
+    <li class="sub">Includes base fare + taxes + surcharges breakdown</li>
+  </ul>
+</div>
+
+<!-- Branch 2: Change Logs -->
+<div class="mm-branch changelog">
+  <h3>2. Change Logs & Timestamps</h3>
+  <ul>
+    <li><strong>State Change Tracking</strong></li>
+    <li class="sub">Every booking state transition with timestamp</li>
+    <li class="sub">Who triggered (system/user/agent/airline)</li>
+    <li><strong>Timestamp-Based Reporting</strong></li>
+    <li class="sub">Booking created → confirmed → modified → cancelled timeline</li>
+    <li class="sub">Provider response timestamps vs ixigo action timestamps</li>
+    <li><strong>Before/After Delta</strong></li>
+    <li class="sub">What changed in each state transition (fare, seat, PNR, etc.)</li>
+    <li><strong>Audit Trail</strong></li>
+    <li class="sub">Immutable log for compliance and dispute resolution</li>
+    <li class="sub">Linkable to specific recon mismatches</li>
+  </ul>
+</div>
+
+<!-- Branch 3: Cancellation Recon -->
+<div class="mm-branch cancel">
+  <h3>3. Cancellation Reports</h3>
+  <ul>
+    <li><strong>Cancelled State Match</strong></li>
+    <li class="sub">ixigo status vs provider status vs airline status</li>
+    <li class="sub">Detect: cancelled on ixigo but active on airline (revenue leak)</li>
+    <li><strong>Refund Amount Match (3-Way)</strong></li>
+    <li class="sub">B2B fare rules → ixigo assumed penalty</li>
+    <li class="sub">Provider penalty in settlement file</li>
+    <li class="sub">Actual refund credited to ixigo account</li>
+    <li><strong>Split PNR Storage</strong></li>
+    <li class="sub">When airline splits PNR post-cancellation</li>
+    <li class="sub">Map original PNR → new split PNR(s)</li>
+    <li><strong>Seat/Meal Refund Mismatch</strong></li>
+    <li class="sub">CMS-defined refund condition vs actual amount refunded</li>
+    <li class="sub">Ancillary-specific refund rules per airline</li>
+    <li><strong>Ageing & Provider Recoverable</strong></li>
+    <li class="sub">Track days since cancellation → refund still pending</li>
+    <li class="sub">Calculate provider recoverable amount</li>
+  </ul>
+</div>
+
+<!-- Branch 4: Tech Losses -->
+<div class="mm-branch techloss">
+  <h3>4. Tech Losses & Customer Delight</h3>
+  <ul>
+    <li><strong>Tech Loss Identification</strong></li>
+    <li class="sub">Losses caused by system bugs, API failures, timeout issues</li>
+    <li class="sub">Not attributable to user or airline — ixigo absorbs cost</li>
+    <li><strong>Customer Delight Mapping</strong></li>
+    <li class="sub">Goodwill gestures, compensations, vouchers issued</li>
+    <li class="sub">Link to originating booking/cancellation/reschedule</li>
+    <li><strong>DWH Integration</strong></li>
+    <li class="sub">Push to Data Warehouse for trend analysis</li>
+    <li class="sub">Dashboards for loss attribution by provider/airline/route</li>
+    <li><strong>Source: Shubham Gadia</strong></li>
+    <li class="sub">Get current tech loss categorization logic</li>
+    <li class="sub">Get customer delight approval workflow</li>
+  </ul>
+</div>
+
+<!-- Branch 5: Reschedule Recon -->
+<div class="mm-branch resched">
+  <h3>5. Reschedule Reports</h3>
+  <ul>
+    <li><strong>Reschedule State Match</strong></li>
+    <li class="sub">ixigo reschedule status vs provider vs airline</li>
+    <li class="sub">Detect: rescheduled on provider but ixigo still shows old flight</li>
+    <li><strong>Rescheduled PNR / Split PNR Storage</strong></li>
+    <li class="sub">New PNR issued after reschedule → map to original</li>
+    <li class="sub">Split PNR scenarios (partial reschedule, multi-pax)</li>
+    <li><strong>Reschedule Amount Mismatch</strong></li>
+    <li class="sub">Fare difference (new fare − old fare)</li>
+    <li class="sub">Airline reschedule charges (penalty/fee)</li>
+    <li class="sub">ixigo charged to user vs actual airline charge</li>
+    <li><strong>Airline-Initiated Reschedule (Schedule Change)</strong></li>
+    <li class="sub">Airline changes flight time/number → detect and track</li>
+    <li class="sub">Match with provider notification</li>
+  </ul>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== DETAILED BREAKDOWN ===================== -->
+<div class="section">
+<h2>3. Detailed Recon Logic — Report by Report</h2>
+<div class="detail-grid">
+
+<!-- Booking Recon Detail -->
+<div class="detail-card green-b">
+  <h3>1A. PNR Match Report</h3>
+  <h4>What We Compare</h4>
+  <ul>
+    <li class="match"><strong>Exact match:</strong> ixigo PNR = provider PNR = airline PNR</li>
+    <li class="mismatch"><strong>Extra PNR:</strong> Provider has PNR that ixigo doesn't recognize</li>
+    <li class="mismatch"><strong>Orphan PNR:</strong> ixigo has PNR but provider/airline says "no record"</li>
+    <li class="alert"><strong>Duplicate PNR:</strong> Same passenger, same flight, multiple PNRs</li>
+  </ul>
+  <h4>Data Sources</h4>
+  <ul>
+    <li><strong>ixigo:</strong> Booking DB (PNR, flight details, pax info)</li>
+    <li><strong>Provider:</strong> Settlement/booking file (daily dump or API)</li>
+    <li><strong>Airline:</strong> GDS/NDC retrieve response (real-time or batch)</li>
+  </ul>
+  <h4>Actions on Mismatch</h4>
+  <ul>
+    <li>Extra PNR → Check if ixigo has a failed booking for same pax/date → if yes, map it</li>
+    <li>Extra PNR → If no ixigo record, flag as <strong>potential liability</strong> (provider may charge us)</li>
+    <li>Orphan PNR → Verify with airline directly → if cancelled, initiate refund from provider</li>
+  </ul>
+</div>
+
+<div class="detail-card green-b">
+  <h3>1B. Fare Mismatch Report</h3>
+  <h4>Published Fare Mismatch</h4>
+  <ul>
+    <li><strong>Compare:</strong> ixigo stored published fare vs airline's actual tariff</li>
+    <li>Includes: base fare, YQ (fuel surcharge), YR, airport taxes, PSF, UDF</li>
+    <li class="mismatch">If ixigo published fare &lt; airline fare → <strong>margin leakage</strong></li>
+    <li class="mismatch">If ixigo published fare &gt; airline fare → <strong>overcharge risk</strong></li>
+  </ul>
+  <h4>Offered Fare Mismatch</h4>
+  <ul>
+    <li><strong>Compare:</strong> Fare offered to user on ixigo vs fare charged by provider</li>
+    <li>Includes: convenience fee, discount, promo breakdown</li>
+    <li class="mismatch">If provider charged more than offered → <strong>ixigo absorbs loss</strong></li>
+    <li class="alert">Flag bookings where offered ≠ published beyond threshold (±₹50)</li>
+  </ul>
+  <h4>Frequency</h4>
+  <ul>
+    <li>Daily batch (T+1) for all bookings from previous day</li>
+    <li>Real-time alert for mismatches &gt; ₹500</li>
+  </ul>
+</div>
+
+<!-- Cancellation Recon Detail -->
+<div class="detail-card red-b">
+  <h3>3A. Cancellation State Match</h3>
+  <h4>Three-Way State Comparison</h4>
+  <ul>
+    <li class="match"><strong>All cancelled:</strong> ixigo = cancelled, provider = cancelled, airline = cancelled</li>
+    <li class="mismatch"><strong>ixigo cancelled, airline active:</strong> Revenue leak — ticket still valid, refund not due</li>
+    <li class="mismatch"><strong>Airline cancelled, ixigo active:</strong> User has invalid ticket — urgent CX action</li>
+    <li class="alert"><strong>Provider says cancelled, airline says active:</strong> Provider error — escalate</li>
+  </ul>
+  <h4>Data Sources</h4>
+  <ul>
+    <li><strong>ixigo:</strong> Cancellation API logs + booking DB status</li>
+    <li><strong>Provider:</strong> Cancellation confirmation + settlement file</li>
+    <li><strong>Airline:</strong> PNR status retrieve (cancelled / confirmed / open)</li>
+  </ul>
+</div>
+
+<div class="detail-card red-b">
+  <h3>3B. Refund 3-Way Match</h3>
+  <div class="three-way">
+    <h5>The 3-Way Comparison</h5>
+    <div class="three-way-row">
+      <div class="three-way-box a">
+        <div style="font-size:10px; color:#38bdf8;">SOURCE A</div>
+        <strong>B2B Fare Rules</strong><br>
+        ixigo assumed penalty<br>
+        (from fare rule / API response)
+      </div>
+      <div class="three-way-arrow">⟷</div>
+      <div class="three-way-box b">
+        <div style="font-size:10px; color:#a78bfa;">SOURCE B</div>
+        <strong>Provider File</strong><br>
+        Provider's penalty in<br>
+        settlement/cancellation file
+      </div>
+      <div class="three-way-arrow">⟷</div>
+      <div class="three-way-box c">
+        <div style="font-size:10px; color:#22c55e;">SOURCE C</div>
+        <strong>ixigo Account</strong><br>
+        Actual refund credited<br>
+        to ixigo's account
+      </div>
+    </div>
+  </div>
+  <h4>What This Calculates</h4>
+  <ul>
+    <li><strong>Ageing:</strong> Days since cancellation → refund still not received</li>
+    <li><strong>Provider Recoverable:</strong> Amount owed by provider = (Expected Refund) − (Actual Refund Received)</li>
+    <li class="mismatch">If Source A ≠ Source B → Provider applied different penalty than fare rules state</li>
+    <li class="mismatch">If Source B ≠ Source C → Provider acknowledged refund but didn't credit it</li>
+    <li class="alert">Ageing &gt; 15 days → Auto-escalate to provider account manager</li>
+  </ul>
+</div>
+
+<div class="detail-card red-b">
+  <h3>3C. Split PNR & Ancillary Refund</h3>
+  <h4>Split PNR Storage</h4>
+  <ul>
+    <li>When airline splits a PNR (e.g., partial cancellation of multi-pax booking)</li>
+    <li>Store mapping: <strong>Original PNR → [Split PNR 1, Split PNR 2, ...]</strong></li>
+    <li>Track refund per split PNR separately</li>
+    <li class="alert">Risk: Refund issued against original PNR but split PNR still active</li>
+  </ul>
+  <h4>Seat/Meal Refund Mismatch</h4>
+  <ul>
+    <li><strong>Compare:</strong> CMS refund condition (e.g., "refundable before 4 hrs") vs actual refund amount</li>
+    <li>Per-airline ancillary refund rules differ significantly</li>
+    <li class="mismatch">CMS says "full refund" but provider refunded ₹0 → escalate</li>
+    <li class="mismatch">CMS says "non-refundable" but user was charged refund penalty → overcharge</li>
+  </ul>
+</div>
+
+<!-- Tech Losses Detail -->
+<div class="detail-card yellow-b">
+  <h3>4. Tech Losses & Customer Delight → DWH</h3>
+  <h4>Tech Loss Categories</h4>
+  <ul>
+    <li><strong>Booking failure loss:</strong> Price increased between user's search and booking attempt</li>
+    <li><strong>API timeout loss:</strong> Provider API timed out, rebooked at higher fare</li>
+    <li><strong>Duplicate booking loss:</strong> System created 2 PNRs, one needs cancellation</li>
+    <li><strong>Fare feed error:</strong> Stale/incorrect fare cached → booked at loss</li>
+    <li><strong>Ancillary booking failure:</strong> Seat/meal not booked but user was charged</li>
+  </ul>
+  <h4>Customer Delight Categories</h4>
+  <ul>
+    <li><strong>Voucher issued:</strong> Compensation for poor experience</li>
+    <li><strong>Fare difference absorbed:</strong> ixigo ate the loss to keep customer happy</li>
+    <li><strong>Free upgrade:</strong> Seat/meal upgrade at ixigo's cost</li>
+    <li><strong>Refund over-credited:</strong> Refunded more than entitled as goodwill</li>
+  </ul>
+  <h4>DWH Requirements</h4>
+  <ul>
+    <li>Push all tech loss + delight records to Data Warehouse daily</li>
+    <li>Dimensions: provider, airline, route, booking type, failure reason</li>
+    <li>Enable trending: is tech loss increasing for a specific provider?</li>
+    <li>Source owner: <strong>Shubham Gadia</strong> — get current logic + approval workflow</li>
+  </ul>
+</div>
+
+<!-- Reschedule Recon Detail -->
+<div class="detail-card purple-b">
+  <h3>5. Reschedule Recon — Full Breakdown</h3>
+  <h4>Reschedule State Match</h4>
+  <ul>
+    <li class="match"><strong>All aligned:</strong> ixigo = rescheduled, provider = rescheduled, airline = new flight</li>
+    <li class="mismatch"><strong>ixigo shows rescheduled, airline shows original:</strong> Reschedule didn't actually happen</li>
+    <li class="mismatch"><strong>Airline rescheduled, ixigo shows original:</strong> User has wrong itinerary — urgent</li>
+  </ul>
+  <h4>PNR / Split PNR Storage</h4>
+  <ul>
+    <li>Reschedule may issue a new PNR → map <strong>Old PNR → New PNR</strong></li>
+    <li>Multi-pax reschedule (only some pax reschedule) → <strong>split PNR</strong></li>
+    <li>Store: original PNR, new PNR, split PNRs, pax mapping per PNR</li>
+  </ul>
+  <h4>Reschedule Amount Mismatch</h4>
+  <ul>
+    <li><strong>Fare difference:</strong> New fare − old fare (could be positive or negative)</li>
+    <li><strong>Airline reschedule charges:</strong> Penalty/fee charged by airline</li>
+    <li><strong>Compare:</strong> What ixigo charged user vs what airline actually charged</li>
+    <li class="mismatch">If airline charged ₹2,500 but ixigo charged user ₹3,000 → overcharge</li>
+    <li class="mismatch">If airline charged ₹3,000 but ixigo charged user ₹2,500 → ixigo loss</li>
+  </ul>
+</div>
+
+</div>
+</div>
+
+<!-- ===================== DATA SOURCES TABLE ===================== -->
+<div class="section">
+<h2>4. Data Sources & Frequency</h2>
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Report</th>
+      <th>ixigo Source</th>
+      <th>Provider Source</th>
+      <th>Airline Source</th>
+      <th>Frequency</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>PNR Match</strong></td>
+      <td><span class="tag source">Booking DB</span></td>
+      <td><span class="tag source">Settlement File</span></td>
+      <td><span class="tag source">GDS Retrieve</span></td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">Match / Extra / Orphan</span></td>
+    </tr>
+    <tr>
+      <td><strong>Published Fare</strong></td>
+      <td><span class="tag source">Booking DB</span></td>
+      <td><span class="tag source">Fare File</span></td>
+      <td><span class="tag source">Tariff API</span></td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">Fare Delta Report</span></td>
+    </tr>
+    <tr>
+      <td><strong>Offered Fare</strong></td>
+      <td><span class="tag source">Search + Booking Log</span></td>
+      <td><span class="tag source">Booking Confirm</span></td>
+      <td>—</td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">Offered vs Charged</span></td>
+    </tr>
+    <tr>
+      <td><strong>Seat/Meal Match</strong></td>
+      <td><span class="tag source">Ancillary DB</span></td>
+      <td><span class="tag source">SSR Confirm</span></td>
+      <td><span class="tag source">PNR Retrieve</span></td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">Booked vs Confirmed</span></td>
+    </tr>
+    <tr>
+      <td><strong>Cancel State</strong></td>
+      <td><span class="tag source">Cancellation API</span></td>
+      <td><span class="tag source">Cancel File</span></td>
+      <td><span class="tag source">PNR Status</span></td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">State Mismatch Alert</span></td>
+    </tr>
+    <tr>
+      <td><strong>Refund 3-Way</strong></td>
+      <td><span class="tag source">CMS Fare Rules</span></td>
+      <td><span class="tag source">Settlement File</span></td>
+      <td><span class="tag source">Account Statement</span></td>
+      <td><span class="tag freq">Daily + Ageing</span></td>
+      <td><span class="tag output">Recoverable Amount</span></td>
+    </tr>
+    <tr>
+      <td><strong>Split PNR</strong></td>
+      <td><span class="tag source">Booking DB</span></td>
+      <td><span class="tag source">PNR Update</span></td>
+      <td><span class="tag source">GDS Retrieve</span></td>
+      <td><span class="tag freq">On Event</span></td>
+      <td><span class="tag output">PNR Mapping Table</span></td>
+    </tr>
+    <tr>
+      <td><strong>Seat/Meal Refund</strong></td>
+      <td><span class="tag source">CMS Refund Rules</span></td>
+      <td><span class="tag source">Refund File</span></td>
+      <td>—</td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">Ancillary Refund Delta</span></td>
+    </tr>
+    <tr>
+      <td><strong>Tech Losses</strong></td>
+      <td><span class="tag source">Error Logs + DWH</span></td>
+      <td>—</td>
+      <td>—</td>
+      <td><span class="tag freq">Daily</span></td>
+      <td><span class="tag output">Loss Attribution</span></td>
+    </tr>
+    <tr>
+      <td><strong>Customer Delight</strong></td>
+      <td><span class="tag source">CX Tool + Finance</span></td>
+      <td>—</td>
+      <td>—</td>
+      <td><span class="tag freq">Daily</span></td>
+      <td><span class="tag output">Delight → DWH</span></td>
+    </tr>
+    <tr>
+      <td><strong>Reschedule State</strong></td>
+      <td><span class="tag source">Reschedule API</span></td>
+      <td><span class="tag source">Reschedule File</span></td>
+      <td><span class="tag source">PNR Retrieve</span></td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">State Mismatch Alert</span></td>
+    </tr>
+    <tr>
+      <td><strong>Reschedule Amount</strong></td>
+      <td><span class="tag source">Booking + Payment DB</span></td>
+      <td><span class="tag source">Settlement File</span></td>
+      <td><span class="tag source">Fare Retrieve</span></td>
+      <td><span class="tag freq">Daily T+1</span></td>
+      <td><span class="tag output">Amount Delta Report</span></td>
+    </tr>
+    <tr>
+      <td><strong>Change Logs</strong></td>
+      <td><span class="tag source">Event Bus / Audit DB</span></td>
+      <td><span class="tag source">Provider Webhooks</span></td>
+      <td><span class="tag source">Airline Notifications</span></td>
+      <td><span class="tag freq">Real-time</span></td>
+      <td><span class="tag output">Timeline View</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ===================== STAKEHOLDERS ===================== -->
+<div class="section">
+<h2>5. Stakeholders & Ownership</h2>
+<div class="detail-grid">
+  <div class="detail-card blue-b">
+    <h3>Primary Stakeholders</h3>
+    <div class="stakeholder-bar">
+      <span class="stakeholder-chip primary">Supply / Partnerships</span>
+      <span class="stakeholder-chip primary">Finance</span>
+      <span class="stakeholder-chip primary">Product (Recon)</span>
+    </div>
+    <ul>
+      <li><strong>Supply Team:</strong> Owns provider relationship, resolves extra PNRs, fare disputes, SLA enforcement</li>
+      <li><strong>Finance Team:</strong> Owns P&L impact — margin leakage, recoverable amounts, ageing, write-offs</li>
+      <li><strong>Product (Recon):</strong> Builds the reports, defines match logic, exception handling rules</li>
+    </ul>
+  </div>
+  <div class="detail-card purple-b">
+    <h3>Secondary Stakeholders</h3>
+    <div class="stakeholder-bar">
+      <span class="stakeholder-chip secondary">CX / Operations</span>
+      <span class="stakeholder-chip secondary">Tech / Engineering</span>
+      <span class="stakeholder-chip secondary">Data / Analytics</span>
+    </div>
+    <ul>
+      <li><strong>CX:</strong> Handles user-facing impact of mismatches (wrong ticket, missing refund)</li>
+      <li><strong>Tech:</strong> Owns API integrations, event pipelines, DWH ingestion</li>
+      <li><strong>Data:</strong> Builds dashboards, trend analysis, anomaly detection on recon data</li>
+      <li><strong>Shubham Gadia:</strong> Tech loss categorization + customer delight workflow</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ===================== KEY METRICS ===================== -->
+<div class="section">
+<h2>6. Key Metrics & SLAs</h2>
+<div class="sla-grid">
+  <div class="sla-card">
+    <h3>Booking Recon Health</h3>
+    <ul style="list-style:none;">
+      <li><strong>PNR Match Rate</strong> — % of bookings where all 3 sources agree (target: &gt;99.5%)</li>
+      <li><strong>Extra PNR Count</strong> — Monthly count of unmatched provider PNRs (target: 0)</li>
+      <li><strong>Fare Mismatch Rate</strong> — % of bookings with &gt;₹50 fare delta (target: &lt;0.5%)</li>
+      <li><strong>Avg Fare Delta</strong> — Average ₹ mismatch per booking (trend down)</li>
+    </ul>
+  </div>
+  <div class="sla-card">
+    <h3>Cancellation Recon Health</h3>
+    <ul style="list-style:none;">
+      <li><strong>Cancel State Match Rate</strong> — % where all 3 sources agree (target: &gt;99%)</li>
+      <li><strong>Refund Match Rate</strong> — % where 3-way refund amounts match (target: &gt;95%)</li>
+      <li><strong>Avg Refund Ageing</strong> — Days from cancel to refund received (target: &lt;7 days)</li>
+      <li><strong>Provider Recoverable</strong> — Total ₹ owed by providers (trend down monthly)</li>
+    </ul>
+  </div>
+  <div class="sla-card">
+    <h3>Reschedule & Losses</h3>
+    <ul style="list-style:none;">
+      <li><strong>Reschedule State Match</strong> — % aligned across sources (target: &gt;99%)</li>
+      <li><strong>Reschedule Amount Match</strong> — % within ±₹100 tolerance (target: &gt;95%)</li>
+      <li><strong>Monthly Tech Loss ₹</strong> — Total loss attributed to tech issues (trend down)</li>
+      <li><strong>Customer Delight Spend</strong> — Monthly ₹ on goodwill (track vs budget)</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<!-- ===================== EXCEPTION HANDLING ===================== -->
+<div class="section">
+<h2>7. Exception Handling Workflow</h2>
+<div class="ascii-flow"><span class="blue">                           MISMATCH DETECTED IN DAILY RECON</span>
+<span class="dim">                                          │</span>
+<span class="dim">                              ┌───────────┼───────────┐</span>
+<span class="dim">                              ▼           ▼           ▼</span>
+<span class="dim">                      ┌──────────┐  ┌──────────┐  ┌──────────┐</span>
+<span class="dim">                      │</span> <span class="green">AUTO-FIX  </span><span class="dim">│  │</span> <span class="yellow">ESCALATE  </span><span class="dim">│  │</span> <span class="red">MANUAL    </span><span class="dim">│</span>
+<span class="dim">                      │          │  │          │  │          │</span>
+<span class="dim">                      │ Delta ≤  │  │ Delta    │  │ Delta &gt;  │</span>
+<span class="dim">                      │ ₹50      │  │ ₹50-500  │  │ ₹500     │</span>
+<span class="dim">                      └────┬─────┘  └────┬─────┘  └────┬─────┘</span>
+<span class="dim">                           │             │             │</span>
+<span class="dim">                           ▼             ▼             ▼</span>
+<span class="dim">                      Log & close   Create ticket   Alert Supply +</span>
+<span class="dim">                      in recon DB   for Supply team  Finance leads</span>
+<span class="dim">                                        │             │</span>
+<span class="dim">                                        ▼             ▼</span>
+<span class="dim">                                   Investigate    Provider meeting</span>
+<span class="dim">                                   within 48 hrs  within 24 hrs</span>
+<span class="dim">                                        │             │</span>
+<span class="dim">                                        └──────┬──────┘</span>
+<span class="dim">                                               ▼</span>
+<span class="dim">                                   ┌──────────────────────┐</span>
+<span class="dim">                                   │ Resolution:          │</span>
+<span class="dim">                                   │ • Provider credit    │</span>
+<span class="dim">                                   │ • ixigo write-off    │</span>
+<span class="dim">                                   │ • Fare rule update   │</span>
+<span class="dim">                                   │ • API fix deployed   │</span>
+<span class="dim">                                   └──────────────────────┘</span></div>
+</div>
+
+<footer style="text-align:center; padding:40px 0; color:#334155; font-size:12px;">
+  ixigo Flights — Provider Reconciliation Mind Map | Source: Provider Recon Project Deliverables
+</footer>
+
+</body>
+</html>
